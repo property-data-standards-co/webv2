@@ -1,0 +1,343 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About PDTF" description="Governance, organisation, and how to get involved with the Property Data Trust Framework">
+  <!-- Hero -->
+  <section class="bg-gradient-to-br from-pdtf-navy to-pdtf-navy-light text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6">About PDTF</h1>
+        <p class="text-xl text-gray-200">
+          An open industry standard developed by the Open Property Data Association to transform UK property transactions.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPDA -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="section-heading">Open Property Data Association</h2>
+          <p class="text-lg text-gray-600 mb-6">
+            PDTF is developed and maintained under the auspices of the <strong>Open Property Data Association (OPDA)</strong>, an industry body dedicated to improving property data standards in the UK.
+          </p>
+          <p class="text-gray-600 mb-6">
+            OPDA brings together estate agents, conveyancers, lenders, proptech companies, and government stakeholders to collaborate on common data standards that benefit the entire industry.
+          </p>
+          <a href="https://openpropdata.org.uk" target="_blank" class="inline-flex items-center gap-2 text-pdtf-orange hover:underline font-medium">
+            Visit OPDA website
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+        
+        <div class="bg-gray-50 rounded-2xl p-8">
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-6">Governance Structure</h3>
+          <div class="space-y-4">
+            <div class="flex gap-4 items-start">
+              <div class="w-10 h-10 bg-pdtf-orange/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-pdtf-navy">OPDA Board</h4>
+                <p class="text-sm text-gray-600">Industry representatives providing strategic direction</p>
+              </div>
+            </div>
+            
+            <div class="flex gap-4 items-start">
+              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-pdtf-navy">Tech Working Group</h4>
+                <p class="text-sm text-gray-600">Technical standards development and implementation guidance</p>
+              </div>
+            </div>
+            
+            <div class="flex gap-4 items-start">
+              <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-pdtf-navy">Trust Framework</h4>
+                <p class="text-sm text-gray-600">Rules and standards following Trust Over IP methodology</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Framework Model -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">Trust Over IP Framework</h2>
+      <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+        PDTF follows the Trust Over IP (ToIP) governance model, mapping proven internet trust patterns to property data.
+      </p>
+      
+      <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-2xl overflow-hidden border border-gray-200">
+          <div class="grid grid-cols-2">
+            <div class="bg-pdtf-navy text-white p-4 font-medium text-center border-b border-gray-200">Layer</div>
+            <div class="bg-pdtf-navy text-white p-4 font-medium text-center border-b border-gray-200">Implementation</div>
+          </div>
+          
+          <div class="grid grid-cols-2 border-b border-gray-200">
+            <div class="p-4 bg-purple-50">
+              <div class="font-semibold text-pdtf-navy">Layer 4</div>
+              <div class="text-sm text-gray-600">Application Governance</div>
+            </div>
+            <div class="p-4">
+              <div class="font-medium text-pdtf-navy">PDTF, OPDA, DPMSG</div>
+              <div class="text-sm text-gray-500">Industry rules and standards</div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 border-b border-gray-200">
+            <div class="p-4 bg-blue-50">
+              <div class="font-semibold text-pdtf-navy">Layer 3</div>
+              <div class="text-sm text-gray-600">Credential Exchange</div>
+            </div>
+            <div class="p-4">
+              <div class="font-medium text-pdtf-navy">OIDC Verified Claims → VCs</div>
+              <div class="text-sm text-gray-500">How claims are formatted and shared</div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 border-b border-gray-200">
+            <div class="p-4 bg-green-50">
+              <div class="font-semibold text-pdtf-navy">Layer 2</div>
+              <div class="text-sm text-gray-600">Secure Communication</div>
+            </div>
+            <div class="p-4">
+              <div class="font-medium text-pdtf-navy">HTTPS / DIDComm</div>
+              <div class="text-sm text-gray-500">How data is transmitted securely</div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2">
+            <div class="p-4 bg-gray-100">
+              <div class="font-semibold text-pdtf-navy">Layer 1</div>
+              <div class="text-sm text-gray-600">Network</div>
+            </div>
+            <div class="p-4">
+              <div class="font-medium text-pdtf-navy">TCP/IP, IETF standards</div>
+              <div class="text-sm text-gray-500">Foundation infrastructure</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Current Activity -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">Current Activity</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+            <span class="text-sm font-medium text-green-600">Active</span>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Schema v3.6</h3>
+          <p class="text-gray-600 text-sm">
+            Planning and development of the next schema version, incorporating industry feedback and new data requirements.
+          </p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+            <span class="text-sm font-medium text-green-600">Active</span>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">PDTF v2.0 Specification</h3>
+          <p class="text-gray-600 text-sm">
+            Finalising the formal specification for VC-based PDTF, including DID methods and trust registry design.
+          </p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+            <span class="text-sm font-medium text-blue-600">Funded</span>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Regulators' Pioneers Fund</h3>
+          <p class="text-gray-600 text-sm">
+            Proof-of-concept project funded by RPF, using v2.0 specification as the basis for implementation.
+          </p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+            <span class="text-sm font-medium text-purple-600">Ongoing</span>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Smart Data Challenge</h3>
+          <p class="text-gray-600 text-sm">
+            Participation in the government's Smart Data Challenge programme, demonstrating PDTF's potential.
+          </p>
+          <a href="https://vimeo.com/1140770692" target="_blank" class="inline-flex items-center gap-1 text-pdtf-orange text-sm mt-2 hover:underline">
+            Watch video
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-orange-500 rounded-full"></span>
+            <span class="text-sm font-medium text-orange-600">Pilots</span>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Industry Pilots</h3>
+          <p class="text-gray-600 text-sm">
+            Working with estate agents and conveyancers on real-world implementation pilots, including Connells' Digital Sale Ready.
+          </p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-gray-500 rounded-full"></span>
+            <span class="text-sm font-medium text-gray-600">Ongoing</span>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Community Workshops</h3>
+          <p class="text-gray-600 text-sm">
+            Regular workshops with industry participants to gather feedback and align on implementation approaches.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Get Involved -->
+  <section id="contact" class="py-20 bg-gray-50 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">Get Involved</h2>
+      <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+        Whether you're exploring PDTF or ready to implement, here's how to participate.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-pdtf-orange/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-pdtf-navy mb-2">Review the Docs</h3>
+          <p class="text-gray-600 text-sm mb-4">
+            Explore the GitHub repos, schema documentation, and technical specifications.
+          </p>
+          <a href="https://github.com/Property-Data-Trust-Framework" target="_blank" class="text-pdtf-orange hover:underline font-medium">
+            View on GitHub →
+          </a>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-pdtf-navy mb-2">Learn the Tech</h3>
+          <p class="text-gray-600 text-sm mb-4">
+            Understand Verifiable Credentials and DIDs through W3C specifications and tutorials.
+          </p>
+          <a href="https://www.w3.org/TR/vc-data-model/" target="_blank" class="text-pdtf-orange hover:underline font-medium">
+            W3C VC Spec →
+          </a>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-pdtf-navy mb-2">Join the Conversation</h3>
+          <p class="text-gray-600 text-sm mb-4">
+            Participate in workshops, contribute to GitHub discussions, or join the Tech Working Group.
+          </p>
+          <a href="https://openpropdata.org.uk" target="_blank" class="text-pdtf-orange hover:underline font-medium">
+            Contact OPDA →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Alignment -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">Strategic Alignment</h2>
+      
+      <div class="flex flex-wrap justify-center gap-8 mt-12">
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <span class="text-2xl font-bold text-gray-400">HMLR</span>
+          </div>
+          <p class="text-sm text-gray-600">HM Land Registry<br/>Strategy 2022+</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <span class="text-2xl font-bold text-gray-400">DCMS</span>
+          </div>
+          <p class="text-sm text-gray-600">National Data<br/>Strategy</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <span class="text-2xl font-bold text-gray-400">DIATF</span>
+          </div>
+          <p class="text-sm text-gray-600">Digital Identity<br/>Trust Framework</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <span class="text-2xl font-bold text-gray-400">W3C</span>
+          </div>
+          <p class="text-sm text-gray-600">Verifiable<br/>Credentials</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <span class="text-2xl font-bold text-gray-400">ToIP</span>
+          </div>
+          <p class="text-sm text-gray-600">Trust Over<br/>IP Foundation</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 bg-pdtf-navy text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Property Transactions?</h2>
+      <p class="text-xl text-gray-200 mb-8">
+        Join the growing ecosystem of organisations building on PDTF.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/for-developers" class="btn-primary">Start Building</a>
+        <a href="/for-industry" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-pdtf-navy transition-colors">
+          Industry Benefits
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+

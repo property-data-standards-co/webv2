@@ -1,0 +1,382 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Mermaid from '../components/Mermaid.astro';
+---
+
+<BaseLayout title="How PDTF Works" description="Understanding the Property Data Trust Framework - roles, data flow, and provenance">
+  <!-- Hero -->
+  <section class="bg-gradient-to-br from-pdtf-navy to-pdtf-navy-light text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6">How PDTF Works</h1>
+        <p class="text-xl text-gray-200">
+          A framework for standardised property data exchange — not a platform, but shared rules that enable interoperability.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Highway Code Analogy -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="section-heading text-center">The Highway Code Analogy</h2>
+        
+        <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+          PDTF works like the Highway Code for property data. Different vehicles, different roads — but everyone follows the same rules.
+        </p>
+
+        <!-- Visual Diagram -->
+        <div class="bg-gray-50 rounded-2xl p-8 md:p-12">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+              <div class="w-16 h-16 bg-pdtf-orange/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-8 h-8 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 class="font-semibold text-pdtf-navy">PDTF</h3>
+              <p class="text-sm text-gray-500 mt-1">The Rules</p>
+              <p class="text-xs text-gray-400 mt-2">Like the Highway Code</p>
+            </div>
+            
+            <div>
+              <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 class="font-semibold text-pdtf-navy">Apps</h3>
+              <p class="text-sm text-gray-500 mt-1">Moverly, Kotini...</p>
+              <p class="text-xs text-gray-400 mt-2">Like cars</p>
+            </div>
+            
+            <div>
+              <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                </svg>
+              </div>
+              <h3 class="font-semibold text-pdtf-navy">Data</h3>
+              <p class="text-sm text-gray-500 mt-1">Property packs</p>
+              <p class="text-xs text-gray-400 mt-2">Like passengers</p>
+            </div>
+            
+            <div>
+              <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 class="font-semibold text-pdtf-navy">Networks</h3>
+              <p class="text-sm text-gray-500 mt-1">NPTN, Coadjute...</p>
+              <p class="text-xs text-gray-400 mt-2">Like roads</p>
+            </div>
+          </div>
+          
+          <div class="mt-8 text-center">
+            <p class="text-gray-600 max-w-xl mx-auto">
+              PDTF doesn't replace existing software or networks. It provides common standards so they can all work together.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Participant Roles -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">Participant Roles</h2>
+      <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+        The framework defines clear roles for different types of participants in the property data ecosystem.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded-xl p-8 border border-gray-200">
+          <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-3">Relying Party Software Providers</h3>
+          <p class="text-gray-600 mb-4">
+            Software that receives, interprets, and stores property data. Examples include conveyancer case management systems and lender platforms.
+          </p>
+          <ul class="text-sm text-gray-500 space-y-1">
+            <li>• Receive data from the framework</li>
+            <li>• Display data to users</li>
+            <li>• Store and manage data</li>
+          </ul>
+        </div>
+        
+        <div class="bg-white rounded-xl p-8 border border-gray-200">
+          <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-3">Attribute Service Providers</h3>
+          <p class="text-gray-600 mb-4">
+            Services that collect, create, check, and share property attributes. This includes search providers, EPC issuers, and identity verification services.
+          </p>
+          <ul class="text-sm text-gray-500 space-y-1">
+            <li>• Collect property information</li>
+            <li>• Verify and validate data</li>
+            <li>• Publish to the framework</li>
+          </ul>
+        </div>
+        
+        <div class="bg-white rounded-xl p-8 border border-gray-200">
+          <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-3">Orchestration Service Providers</h3>
+          <p class="text-gray-600 mb-4">
+            Infrastructure that enables secure data sharing between participants. They provide the "pipes" for data exchange, consensus, and audit trails.
+          </p>
+          <ul class="text-sm text-gray-500 space-y-1">
+            <li>• Route data between participants</li>
+            <li>• Maintain audit trails</li>
+            <li>• Enable subscriptions</li>
+          </ul>
+        </div>
+      </div>
+
+      <Mermaid
+        title="How data moves through the ecosystem"
+        chart={`flowchart LR
+  ASP[Attribute Service Providers\n(searches, EPC, IDV/AML)] --> OSP[Orchestration Service Providers\n(networks & pipes)]
+  OSP --> RPSP[Relying Party Software Providers\n(CMS, lender platforms)]
+  Consumer[Property owner / Consumer] --- ASP
+  Consumer --- RPSP
+
+  style ASP fill:#E7F7EF,stroke:#38A169
+  style OSP fill:#EEF2FF,stroke:#4F46E5
+  style RPSP fill:#EFF6FF,stroke:#2563EB
+  style Consumer fill:#FFF7ED,stroke:#E97B2D
+`}
+      />
+    </div>
+  </section>
+
+  <!-- Property Pack Contents -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">What's in a Property Pack?</h2>
+      <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+        The digital property pack covers everything needed for a property transaction, all in standardised formats.
+      </p>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">📋</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Material Information</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">👤</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Role & Contact Details</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">🔐</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">IDV and AML</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">🏠</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Ownership</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">🏛️</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Conservation & Listing</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">⚖️</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Legal Information</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">💡</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Utilities</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">📜</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Title Deeds</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">🌡️</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">EPC</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">🔍</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Searches</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">📊</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Survey/Valuation</h4>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center hover:bg-pdtf-orange/10 transition-colors">
+          <div class="text-2xl mb-2">💰</div>
+          <h4 class="font-medium text-pdtf-navy text-sm">Mortgage Offers</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Provenance -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="section-heading text-center">Provenance: Trust the Data</h2>
+        <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+          Every piece of data in PDTF carries provenance metadata — you know who said what, when, and with what evidence.
+        </p>
+        
+        <div class="bg-white rounded-2xl p-8 border border-gray-200">
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-6 text-center">Levels of Provenance</h3>
+          
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+              <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm">1</div>
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-700">Plain Data</h4>
+                <p class="text-sm text-gray-500">No provenance attached</p>
+              </div>
+              <div class="text-red-500">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 p-4 rounded-lg bg-orange-50">
+              <div class="w-10 h-10 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-medium text-sm">2</div>
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-700">Vouched</h4>
+                <p class="text-sm text-gray-500">Seller says "EPC rating is B"</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 p-4 rounded-lg bg-yellow-50">
+              <div class="w-10 h-10 rounded-full bg-yellow-200 flex items-center justify-center text-yellow-700 font-medium text-sm">3</div>
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-700">Vouched + Evidenced</h4>
+                <p class="text-sm text-gray-500">Seller says "B" + attached scanned certificate</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 p-4 rounded-lg bg-blue-50">
+              <div class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-medium text-sm">4</div>
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-700">Electronic Record</h4>
+                <p class="text-sm text-gray-500">Retrieved from propertyInfo.co.uk</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 p-4 rounded-lg bg-indigo-50">
+              <div class="w-10 h-10 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-medium text-sm">5</div>
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-700">Verified Identity Vouched</h4>
+                <p class="text-sm text-gray-500">Verified-identity seller attests to data</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 p-4 rounded-lg bg-green-50">
+              <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-medium text-sm">6</div>
+              <div class="flex-1">
+                <h4 class="font-medium text-green-700 font-semibold">Verifiable Electronic Record</h4>
+                <p class="text-sm text-green-600">Cryptographically verified from gov.uk trusted source</p>
+              </div>
+              <div class="text-green-500">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <p class="text-center text-gray-600 mt-8">
+          Using the <strong>OpenID Connect 'verified claims' standard</strong>, provenance is attached at the individual attribute level.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAIR Implementation -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">FAIR Data in Practice</h2>
+      <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+        PDTF implements the FAIR principles across every aspect of the framework.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span class="text-blue-600 font-bold">F</span>
+            </div>
+            <h3 class="text-xl font-semibold text-pdtf-navy">Findable</h3>
+          </div>
+          <p class="text-gray-600">
+            UPRN (Unique Property Reference Number) as global identifier. Supports complex multi-UPRN and multi-title relationships.
+          </p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <span class="text-green-600 font-bold">A</span>
+            </div>
+            <h3 class="text-xl font-semibold text-pdtf-navy">Accessible</h3>
+          </div>
+          <p class="text-gray-600">
+            Standard REST API with OpenAPI spec. POST claims, GET claims/state/provenance, manage subscriptions.
+          </p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span class="text-purple-600 font-bold">I</span>
+            </div>
+            <h3 class="text-xl font-semibold text-pdtf-navy">Interoperable</h3>
+          </div>
+          <p class="text-gray-600">
+            Common data schemas using JSON Schema, standard vocabulary, designed for industry-wide adoption.
+          </p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <span class="text-orange-600 font-bold">R</span>
+            </div>
+            <h3 class="text-xl font-semibold text-pdtf-navy">Reusable</h3>
+          </div>
+          <p class="text-gray-600">
+            Data standards plus provenance metadata attached to every data element. Trust follows the data.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 bg-pdtf-navy text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Learn More?</h2>
+      <p class="text-xl text-gray-200 mb-8">
+        Explore how PDTF benefits your role in the property ecosystem, or dive into the technical documentation.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/for-industry" class="btn-primary">Industry Benefits</a>
+        <a href="/for-developers" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-pdtf-navy transition-colors">
+          Developer Docs
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+

@@ -1,0 +1,451 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="For Developers" description="Technical documentation, API reference, and integration guides for PDTF">
+  <!-- Hero -->
+  <section class="bg-gradient-to-br from-pdtf-navy to-pdtf-navy-light text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6">For Developers</h1>
+        <p class="text-xl text-gray-200">
+          Build applications on the Property Data Trust Framework. Open standards, REST APIs, and JSON Schema — everything you need to integrate.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 mt-8">
+          <a href="#getting-started" class="btn-primary">Get Started</a>
+          <a href="https://github.com/Property-Data-Trust-Framework" target="_blank" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-pdtf-navy transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+            </svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Links -->
+  <section class="py-12 bg-gray-50 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="#getting-started" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-pdtf-orange hover:shadow-md transition-all text-center">
+          <div class="text-2xl mb-2">🚀</div>
+          <h3 class="font-semibold text-pdtf-navy">Getting Started</h3>
+        </a>
+        <a href="#api" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-pdtf-orange hover:shadow-md transition-all text-center">
+          <div class="text-2xl mb-2">📡</div>
+          <h3 class="font-semibold text-pdtf-navy">API Reference</h3>
+        </a>
+        <a href="#schemas" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-pdtf-orange hover:shadow-md transition-all text-center">
+          <div class="text-2xl mb-2">📋</div>
+          <h3 class="font-semibold text-pdtf-navy">Schemas</h3>
+        </a>
+        <a href="#v2" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-pdtf-orange hover:shadow-md transition-all text-center">
+          <div class="text-2xl mb-2">🔐</div>
+          <h3 class="font-semibold text-pdtf-navy">v2.0 (VCs)</h3>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Getting Started -->
+  <section id="getting-started" class="py-20 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading">Getting Started</h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-4">Core Concepts</h3>
+          <div class="space-y-4">
+            <div class="bg-gray-50 rounded-xl p-6">
+              <h4 class="font-semibold text-pdtf-navy mb-2">Claims</h4>
+              <p class="text-gray-600 text-sm">
+                Data in PDTF is represented as claims — statements about a property with attached provenance. Claims are immutable; updates are made by adding new claims.
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-6">
+              <h4 class="font-semibold text-pdtf-navy mb-2">Property Packs</h4>
+              <p class="text-gray-600 text-sm">
+                A property pack is the collection of claims about a property. The current state is computed by combining all claims, with provenance indicating trustworthiness.
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-6">
+              <h4 class="font-semibold text-pdtf-navy mb-2">Provenance</h4>
+              <p class="text-gray-600 text-sm">
+                Every claim carries provenance metadata: who made the claim, when, with what evidence, and at what trust level. This is based on the OpenID Connect 'verified claims' standard.
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-6">
+              <h4 class="font-semibold text-pdtf-navy mb-2">Subscriptions</h4>
+              <p class="text-gray-600 text-sm">
+                Subscribe to property packs to receive updates when new claims are added. Webhooks notify your system of changes in real-time.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-4">Quick Start</h3>
+          <div class="bg-gray-900 rounded-xl p-6 overflow-x-auto">
+            <div class="text-sm text-gray-400 mb-2"># Fetch current state for a property</div>
+            <pre class="text-green-400 text-sm"><code>curl -X GET \
+  https://api.example.com/pdtf/v1/property-pack/&#123;uprn&#125;/state \
+  -H "Authorization: Bearer &#123;token&#125;" \
+  -H "Accept: application/json"</code></pre>
+          </div>
+          
+          <div class="bg-gray-900 rounded-xl p-6 mt-4 overflow-x-auto">
+            <div class="text-sm text-gray-400 mb-2"># Post a new claim</div>
+            <pre class="text-green-400 text-sm"><code>curl -X POST \
+  https://api.example.com/pdtf/v1/property-pack/&#123;uprn&#125;/claims \
+  -H "Authorization: Bearer &#123;token&#125;" \
+  -H "Content-Type: application/json" \
+  -d '&#123;
+    "claimPath": "/propertyPack/energyEfficiency/currentEnergyRating",
+    "value": "B",
+    "provenance": &#123;
+      "type": "vouched",
+      "vouchedBy": "did:web:example.com:users:123"
+    &#125;
+  &#125;'</code></pre>
+          </div>
+          
+          <div class="mt-6">
+            <a href="https://github.com/Property-Data-Trust-Framework/schemas" target="_blank" class="inline-flex items-center gap-2 text-pdtf-orange hover:underline font-medium">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+              </svg>
+              View full API examples on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API Reference -->
+  <section id="api" class="py-20 bg-gray-50 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading">API Reference</h2>
+      <p class="text-lg text-gray-600 mb-8 max-w-2xl">
+        The PDTF API follows REST conventions with OpenAPI specification. All data is exchanged as JSON.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-mono font-medium">GET</span>
+            <code class="text-sm text-gray-600">/property-pack/&#123;uprn&#125;/claims</code>
+          </div>
+          <h4 class="font-semibold text-pdtf-navy mb-2">Get Claims</h4>
+          <p class="text-gray-600 text-sm">Retrieve all claims for a property pack, including full provenance metadata.</p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-mono font-medium">GET</span>
+            <code class="text-sm text-gray-600">/property-pack/&#123;uprn&#125;/state</code>
+          </div>
+          <h4 class="font-semibold text-pdtf-navy mb-2">Get Current State</h4>
+          <p class="text-gray-600 text-sm">Get the computed current state of a property pack (latest values for each attribute).</p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-mono font-medium">GET</span>
+            <code class="text-sm text-gray-600">/property-pack/&#123;uprn&#125;/provenance-map</code>
+          </div>
+          <h4 class="font-semibold text-pdtf-navy mb-2">Get Provenance Map</h4>
+          <p class="text-gray-600 text-sm">Returns the same structure as state, but with provenance information replacing values.</p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm font-mono font-medium">POST</span>
+            <code class="text-sm text-gray-600">/property-pack/&#123;uprn&#125;/claims</code>
+          </div>
+          <h4 class="font-semibold text-pdtf-navy mb-2">Post Claim</h4>
+          <p class="text-gray-600 text-sm">Add a new claim to a property pack with provenance metadata.</p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm font-mono font-medium">POST</span>
+            <code class="text-sm text-gray-600">/property-pack/&#123;uprn&#125;/subscriptions</code>
+          </div>
+          <h4 class="font-semibold text-pdtf-navy mb-2">Subscribe</h4>
+          <p class="text-gray-600 text-sm">Subscribe to receive webhook notifications when claims are added.</p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-sm font-mono font-medium">DELETE</span>
+            <code class="text-sm text-gray-600">/property-pack/&#123;uprn&#125;/subscriptions/&#123;id&#125;</code>
+          </div>
+          <h4 class="font-semibold text-pdtf-navy mb-2">Unsubscribe</h4>
+          <p class="text-gray-600 text-sm">Remove an existing subscription.</p>
+        </div>
+      </div>
+      
+      <div class="mt-8 text-center">
+        <a href="https://github.com/Property-Data-Trust-Framework/trust-framework" target="_blank" class="btn-primary">
+          Full OpenAPI Specification →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Schemas -->
+  <section id="schemas" class="py-20 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading">Property Pack Schemas</h2>
+      <p class="text-lg text-gray-600 mb-8 max-w-2xl">
+        All property data follows JSON Schema definitions. The schema is versioned (currently v3.x) and designed for semantic stability.
+      </p>
+      
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+          <h3 class="font-semibold text-pdtf-navy">Schema Structure</h3>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="border border-gray-200 rounded-lg p-4">
+              <code class="text-sm text-pdtf-orange">/propertyPack</code>
+              <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                <li>• /materialFacts</li>
+                <li>• /ownership</li>
+                <li>• /titles</li>
+                <li>• /energyEfficiency</li>
+              </ul>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4">
+              <code class="text-sm text-pdtf-orange">/searches</code>
+              <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                <li>• /localAuthority</li>
+                <li>• /drainage</li>
+                <li>• /environmental</li>
+                <li>• /mining</li>
+              </ul>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4">
+              <code class="text-sm text-pdtf-orange">/participants</code>
+              <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                <li>• /seller</li>
+                <li>• /buyer</li>
+                <li>• /sellerConveyancer</li>
+                <li>• /buyerConveyancer</li>
+              </ul>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4">
+              <code class="text-sm text-pdtf-orange">/legalInfo</code>
+              <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                <li>• /tenure</li>
+                <li>• /restrictions</li>
+                <li>• /easements</li>
+                <li>• /boundaries</li>
+              </ul>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4">
+              <code class="text-sm text-pdtf-orange">/transaction</code>
+              <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                <li>• /offers</li>
+                <li>• /mortgages</li>
+                <li>• /completionDate</li>
+              </ul>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4">
+              <code class="text-sm text-pdtf-orange">/verification</code>
+              <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                <li>• /identity</li>
+                <li>• /aml</li>
+                <li>• /sourceOfFunds</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a href="https://github.com/Property-Data-Trust-Framework/schemas" target="_blank" class="btn-primary">
+          Browse Schemas on GitHub
+        </a>
+        <a href="https://github.com/Property-Data-Trust-Framework/schemas/releases" target="_blank" class="btn-secondary">
+          Schema Changelog
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PDTF v2.0 -->
+  <section id="v2" class="py-20 bg-gray-50 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-4">
+        <h2 class="section-heading mb-0">PDTF v2.0</h2>
+        <span class="px-3 py-1 bg-pdtf-orange text-white text-sm font-medium rounded-full">Preview</span>
+      </div>
+      <p class="text-lg text-gray-600 mb-8 max-w-2xl">
+        The next generation of PDTF uses W3C Verifiable Credentials and Decentralised Identifiers for cryptographic trust.
+      </p>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-4">What's New in v2.0</h3>
+          <div class="space-y-4">
+            <div class="flex gap-3">
+              <svg class="w-6 h-6 text-pdtf-orange flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h4 class="font-semibold text-pdtf-navy">Verifiable Credentials</h4>
+                <p class="text-gray-600 text-sm">W3C standard credentials with cryptographic proofs. No need to verify back with the source.</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <svg class="w-6 h-6 text-pdtf-orange flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h4 class="font-semibold text-pdtf-navy">Decentralised Identifiers (DIDs)</h4>
+                <p class="text-gray-600 text-sm">Stable identifiers for participants with public-key binding. Example: <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">did:web:moverly.com:users:abc</code></p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <svg class="w-6 h-6 text-pdtf-orange flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h4 class="font-semibold text-pdtf-navy">Entity Graph</h4>
+                <p class="text-gray-600 text-sm">Property → Title → Transaction relationships with participation credentials linking parties.</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <svg class="w-6 h-6 text-pdtf-orange flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h4 class="font-semibold text-pdtf-navy">Per-Credential Access Control</h4>
+                <p class="text-gray-600 text-sm">termsOfUse field with confidentiality levels and role-based presentation policies.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-4">Trust Registry</h3>
+          <div class="bg-gray-900 rounded-xl p-6 overflow-x-auto">
+            <pre class="text-green-400 text-sm"><code>&#123;
+  "rootIssuers": &#123;
+    "HMLR": &#123;
+      "did": "did:web:hmlr.gov.uk",
+      "claimPaths": ["/propertyPack/titles"]
+    &#125;,
+    "VoA": &#123;
+      "did": "did:web:voa.gov.uk",
+      "claimPaths": ["/councilTaxBand"]
+    &#125;
+  &#125;,
+  "trustedProxies": &#123;
+    "tmGroup": &#123;
+      "did": "did:web:api.tmgroup.co.uk",
+      "claimPaths": ["/searches"]
+    &#125;,
+    "moverly": &#123;
+      "did": "did:web:trust.moveready.com",
+      "claimPaths": ["/propertyPack"]
+    &#125;
+  &#125;
+&#125;</code></pre>
+          </div>
+          <p class="text-sm text-gray-600 mt-4">
+            The trust registry at <code class="bg-gray-100 px-1 py-0.5 rounded">trust.propdata.org.uk</code> maintains the list of root issuers and trusted proxies.
+          </p>
+        </div>
+      </div>
+      
+      <div class="mt-12 bg-white rounded-xl p-8 border border-gray-200">
+        <h3 class="text-xl font-semibold text-pdtf-navy mb-4">Two-Phase Implementation</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm font-medium">Phase 1 - Now</span>
+            </div>
+            <h4 class="font-semibold text-pdtf-navy mb-2">Trusted Proxies</h4>
+            <p class="text-gray-600 text-sm">
+              Existing API providers (tmGroup, Moverly) wrap responses in PDTF-compliant VCs, signing with their trusted proxy keys. "Map-and-wrap" adaptors require minimal infrastructure changes.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">Phase 2 - Future</span>
+            </div>
+            <h4 class="font-semibold text-pdtf-navy mb-2">Root Issuers</h4>
+            <p class="text-gray-600 text-sm">
+              Primary sources (HMLR, VoA) issue PDTF-compliant VCs directly. Highest level of achievable trust with no intermediary signatures required.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integration Guides -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading">Integration Guides</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="https://github.com/Property-Data-Trust-Framework/trust-framework/blob/main/docs/joining.md" target="_blank" class="bg-white rounded-xl p-6 border border-gray-200 hover:border-pdtf-orange hover:shadow-lg transition-all group">
+          <div class="w-12 h-12 bg-pdtf-orange/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-pdtf-orange/20 transition-colors">
+            <svg class="w-6 h-6 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-pdtf-navy mb-2 group-hover:text-pdtf-orange transition-colors">Joining the Framework</h3>
+          <p class="text-gray-600 text-sm">Step-by-step guide to becoming a PDTF participant, including DID setup and agent configuration.</p>
+        </a>
+        
+        <a href="https://github.com/Property-Data-Trust-Framework/trust-framework/blob/main/docs/legacy-integration.md" target="_blank" class="bg-white rounded-xl p-6 border border-gray-200 hover:border-pdtf-orange hover:shadow-lg transition-all group">
+          <div class="w-12 h-12 bg-pdtf-orange/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-pdtf-orange/20 transition-colors">
+            <svg class="w-6 h-6 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-pdtf-navy mb-2 group-hover:text-pdtf-orange transition-colors">Legacy Integration</h3>
+          <p class="text-gray-600 text-sm">Patterns for connecting existing systems to PDTF using legacy gateways and bidirectional mapping.</p>
+        </a>
+        
+        <a href="https://github.com/Property-Data-Trust-Framework/trust-framework" target="_blank" class="bg-white rounded-xl p-6 border border-gray-200 hover:border-pdtf-orange hover:shadow-lg transition-all group">
+          <div class="w-12 h-12 bg-pdtf-orange/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-pdtf-orange/20 transition-colors">
+            <svg class="w-6 h-6 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-pdtf-navy mb-2 group-hover:text-pdtf-orange transition-colors">Reference Implementation</h3>
+          <p class="text-gray-600 text-sm">Example code and SDK references for building PDTF-compliant applications.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 bg-pdtf-navy text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Build?</h2>
+      <p class="text-xl text-gray-200 mb-8">
+        Join the developer community, explore the code, and start building on PDTF.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="https://github.com/Property-Data-Trust-Framework" target="_blank" class="btn-primary inline-flex items-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+          </svg>
+          Explore on GitHub
+        </a>
+        <a href="/about#contact" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-pdtf-navy transition-colors">
+          Join the Community
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+

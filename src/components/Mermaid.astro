@@ -1,0 +1,41 @@
+---
+interface Props {
+  chart: string;
+  title?: string;
+}
+
+const { chart, title } = Astro.props;
+const id = `mermaid-${Math.random().toString(36).slice(2)}`;
+---
+
+<div class="my-8">
+  {title && <h3 class="text-xl font-semibold text-pdtf-navy mb-4">{title}</h3>}
+  <div class="bg-white border border-gray-200 rounded-xl p-4 overflow-x-auto">
+    <pre class="mermaid text-sm" id={id}>{chart}</pre>
+  </div>
+</div>
+
+<script is:inline>
+  // Load Mermaid only once per page
+  (async function() {
+    if (window.__pdtfMermaidLoaded) {
+      window.mermaid?.run?.();
+      return;
+    }
+    window.__pdtfMermaidLoaded = true;
+
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.textContent = `
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      window.mermaid = mermaid;
+      mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+      mermaid.run();
+    `;
+    document.head.appendChild(script);
+  })();
+</script>
+
+<style>
+  pre.mermaid { background: transparent; }
+</style>

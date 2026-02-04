@@ -1,0 +1,196 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Open Banking for Property Data">
+  <!-- Hero Section -->
+  <section class="relative bg-gradient-to-br from-pdtf-navy to-pdtf-navy-light text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+      <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100" height="100" fill="url(#grid)"/>
+      </svg>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative">
+      <div class="max-w-3xl">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          Open Banking for Property Data
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-200 mb-8">
+          A trust framework enabling standardised, verifiable property information across the UK homebuying process.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a href="/why" class="btn-primary text-center">
+            Understand PDTF
+          </a>
+          <a href="/for-developers" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-pdtf-navy transition-colors text-center">
+            Start Building
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Stats -->
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div class="card">
+          <div class="stat-number">30%</div>
+          <div class="stat-label text-lg">of UK property sales fall through</div>
+        </div>
+        <div class="card">
+          <div class="stat-number">150</div>
+          <div class="stat-label text-lg">days average completion time</div>
+        </div>
+        <div class="card">
+          <div class="stat-number">£1Bn</div>
+          <div class="stat-label text-lg">annual cost to consumers</div>
+        </div>
+      </div>
+      <p class="text-center text-gray-600 mt-8 text-lg max-w-2xl mx-auto">
+        Property data isn't standardised, findable, or verifiable. <strong class="text-pdtf-navy">PDTF changes that.</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- What is PDTF -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">What is PDTF?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-pdtf-orange/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Not a Platform</h3>
+          <p class="text-gray-600">
+            PDTF is a governance framework — like the Highway Code for property data. Apps can be different, networks can vary, but everyone follows the same rules.
+          </p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-pdtf-orange/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Open Standards</h3>
+          <p class="text-gray-600">
+            JSON Schema, REST API, semantic versioning. Built on proven technologies that minimise integration costs and avoid vendor lock-in.
+          </p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-pdtf-orange/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-pdtf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-2">Trust Through Provenance</h3>
+          <p class="text-gray-600">
+            Know who said what, when, with evidence. Every data element carries provenance metadata for verifiable trust.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Who It's For -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="section-heading text-center">Who is PDTF for?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        <div class="card hover:shadow-xl transition-shadow">
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-3">Industry</h3>
+          <p class="text-gray-600 mb-4">
+            Estate agents, conveyancers, lenders — reduce fall-throughs, speed up completions, and cut costs with standardised data.
+          </p>
+          <a href="/for-industry" class="text-pdtf-orange font-medium hover:underline inline-flex items-center gap-1">
+            See benefits
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+        <div class="card hover:shadow-xl transition-shadow">
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-3">Developers</h3>
+          <p class="text-gray-600 mb-4">
+            Proptech builders and system integrators — connect once, work with any participant. One schema to rule them all.
+          </p>
+          <a href="/for-developers" class="text-pdtf-orange font-medium hover:underline inline-flex items-center gap-1">
+            View docs
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+        <div class="card hover:shadow-xl transition-shadow">
+          <h3 class="text-xl font-semibold text-pdtf-navy mb-3">Government</h3>
+          <p class="text-gray-600 mb-4">
+            Regulators and standards bodies — PDTF aligns with HMLR Strategy 2022+ and the DCMS National Data Strategy.
+          </p>
+          <a href="/about" class="text-pdtf-orange font-medium hover:underline inline-flex items-center gap-1">
+            Governance
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Strip -->
+  <section class="py-12 border-y border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 text-gray-500">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span>Backed by OPDA</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span>Aligned with HMLR Strategy</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span>Smart Data Challenge</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span>RPF Proof of Concept</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="section-heading">Ready to get started?</h2>
+      <p class="text-xl text-gray-600 mb-8">
+        Whether you're exploring PDTF for your organisation or ready to build, we're here to help.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/why" class="btn-primary">Learn more about PDTF</a>
+        <a href="https://github.com/Property-Data-Trust-Framework" target="_blank" class="btn-secondary">
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
