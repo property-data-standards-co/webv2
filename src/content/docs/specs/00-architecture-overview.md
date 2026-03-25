@@ -1,0 +1,713 @@
+---
+title: "Spec: Architecture Overview"
+description: "Master reference for the PDTF 2.0 architecture, design decisions, and trust model evolution."
+---
+
+# PDTF 2.0 — Architecture Overview
+
+**Version:** 0.1 (Draft)
+**Date:** 23 March 2026
+**Author:** Ed Molyneux / Moverly
+
+---
+
+## 1. Executive Summary
+
+PDTF 2.0 replaces the OpenID Connect verified claims model with W3C Verifiable Credentials, decomposes the monolithic schema into an entity graph, and introduces decentralised identifiers and cryptographic signing. The result is a framework where property data is independently verifiable, portable between systems, and machine-readable by any agent or platform — without needing to trust the intermediary serving it.
+
+This document is the master reference for the PDTF 2.0 implementation. It links to sub-specs for each workstream and captures architectural decisions as they're made.
+
+---
+
+## 2. What Changes from v1
+
+| Aspect | PDTF v1 (Current) | PDTF 2.0 |
+|--------|-------------------|-----------|
+| **Data model** | Monolithic `pdtf-transaction.json` (~4,000 paths) | Entity graph: Transaction, Property, Title, Person, Organisation, Ownership, Representation, DelegatedConsent, Offer |
+| **Claims** | OpenID Connect verified claims with pathKey:value REPLACE semantics | W3C Verifiable Credentials with sparse objects + dependency pruning |
+| **Identity** | Firebase Auth UIDs, no universal identifiers | DIDs: `did:key` (users), `did:web` (transactions, adapters) |
+| **Entity identifiers** | Internal Firestore document IDs | URNs: `urn:pdtf:titleNumber:{value}`, `urn:pdtf:uprn:{value}` |
+| **Verification** | Trust the platform serving the data | Cryptographic proof — verify the signature, not the intermediary |
+| **Provenance** | OIDC-derived evidence schema (deeply nested) | Simpler evidence model reflecting actual usage patterns |
+| **Access control** | Platform-enforced role checks | Per-credential `termsOfUse` (confidentiality + role restrictions) + participation credential presentation |
+| **Interoperability** | REST API, platform-specific | DID documents with service endpoints, MCP-compliant API |
+| **Trust** | Single platform trust | Federated trust via Trusted Issuer Registry |
+
+---
+
+## 3. Entity Graph
+
+### 3.1 Core Entities
+
+| Entity | Identifier | Schema | Description |
+|--------|-----------|--------|-------------|
+| **Transaction** | `did:web` | `v4/Transaction.json` | Metadata, status, dates, financial info. References Property and Titles. DID document hosts service endpoints. |
+| **Property** | `urn:pdtf:uprn:{uprn}` | `v4/Property.json` | Physical property: address, build info, features, energy, environmental, legal questions. All "property pack" data lives here. |
+| **Title** | `urn:pdtf:titleNumber:{number}` | `v4/Title.json` | Legal ownership: title number, extents (geoJSON), register extract, ownership type (freehold/leasehold), leasehold info. |
+| **Person** | `did:key` | `v4/Person.json` | Individual: name, contact, address, verification status. Role-free — role is contextual via Ownership, Representation, or Offer. |
+| **Organisation** | `did:web` | `v4/Organisation.json` | Firm or company: conveyancer firm, estate agency, lender. Distinct from Person — organisations have `did:web` identifiers, not `did:key`. Representation credentials are issued to Organisations. |
+| **Ownership** | URN (generated) | `v4/Ownership.json` | Thin signed assertion linking a Person/Organisation DID to a Title URN with status and verification level. Verified by cross-referencing Title.registerExtract.proprietorship (claim-vs-evidence separation). Revocable credential. |
+| **Representation** | URN (generated) | `v4/Representation.json` | Delegated authority — conveyancer firm, estate agency. Issued by the seller/buyer to an **Organisation** (the firm, not the individual solicitor). Revocable. |
+| **DelegatedConsent** | URN (generated) | `v4/DelegatedConsent.json` | Authorised data access for entities like lenders. Part of terms of use for specific authorised entities. |
+| **Offer** | URN (generated) | `v4/Offer.json` (TBD) | Links buyer Person(s) to Transaction. Buyers exist only through Offers, not through Participation. Contains offer details, status, conditions. |
+| **Mortgage** | URN (generated) | Future | Tied to Offer/buyer. Flagged for growth — not in initial implementation. |
+
+### 3.2 Entity Relationship Diagram
+
+<!-- ![PDTF 2.0 Entity Relationship Model](diagrams/entity-graph.png) -->
+
+### 3.3 Relationship Model
+
+The relationship is **Transaction-centric**, not Property → Title → Transaction. This matters because:
+- **Unregistered titles** exist — no title number, so no `urn:pdtf:titleNumber:*`. We need an identifier method for titles which are currently unregistered but for which title evidence is being gathered.
+- A transaction may involve **multiple properties and multiple titles** (e.g. a house and its garage on separate titles).
+- The DID-based relationship model handles this naturally — a Transaction DID document references its associated Property and Title identifiers.
+
+```
+Transaction (did:web:moverly.com:transactions:*)
+    ├── Property[] (urn:pdtf:uprn:*)
+    │     └── (may have no title — new build, unregistered)
+    ├── Title[] (urn:pdtf:titleNumber:* OR urn:pdtf:unregisteredTitle:*)
+    │     └── (may span multiple properties)
+    │
+    ├── Person[] (did:key:*)
+    │     └── Individual people (sellers, buyers)
+    ├── Organisation[] (did:web:*)
+    │     └── Firms and companies (conveyancer firms, estate agencies, lenders)
+    │
+    ├── Ownership[] ──→ Person (did:key:*)
+    │     └── Thin assertion: links Person DID to Title URN
+    │         with status + verification level
+    │         (verified against Title.registerExtract.proprietorship)
+    │
+    ├── Representation[] ──→ Organisation (did:web:*)
+    │     ├── role: "sellerConveyancer" (issued by seller)
+    │     ├── role: "estateAgent" (issued by seller)
+    │     └── role: "buyerConveyancer" (issued by buyer)
+    │     (issued to the firm, not the individual solicitor)
+    │
+    ├── DelegatedConsent[] ──→ Person/Organisation
+    │     └── Authorised entities (e.g. lenders) with specific
+    │         data access rights under terms of use
+    │
+    └── Offer[] ──→ Person (did:key:*)
+          ├── role: "buyer" (implicit)
+          ├── status, amount, conditions
+          └── Mortgage (future)
+```
+
+**Participation decomposed:** The old "Participation" entity is replaced by three precise relationship types, plus Organisation as a new first-class entity:
+- **Ownership** — thin signed assertion linking a Person/Organisation DID to a Title URN. Contains status and verification level but not the evidence itself — that lives in Title.registerExtract.proprietorship (claim-vs-evidence separation).
+- **Representation** — delegated authority from seller/buyer to act on their behalf. Issued to an **Organisation** (the conveyancer firm, not the individual solicitor), because the professional duty and insurance liability sits with the firm. These credentials are *issued by* the seller or buyer.
+- **DelegatedConsent** — authorised access for entities like lenders, as part of terms of use. General consent mechanism for entities that aren't direct participants but have legitimate data access needs.
+- **Organisation** — new first-class entity for firms and companies. Uses `did:web` identifiers (not `did:key` like Person). The distinction matters: a conveyancer firm has a Companies House identity, SRA registration, and PI insurance — none of which belong on a Person entity.
+
+### 3.3 Key Design Decisions
+
+- **Buyers participate only through Offers** — no Participation entity for buyers. This models the real-world relationship: a buyer doesn't "participate" in the seller's transaction until they make an offer, and multiple offers can exist simultaneously.
+- **Seller vs Representative distinction** — TBD. May split into separate Seller and Representative (for conveyancers, estate agents) relationship entities. Needs consensus from Rick at LMS and others.
+- **ID-keyed collections** — v4 moves from arrays (participants[], searches[]) to ID-keyed maps (like current offers). Breaking change to schema structure but not to the underlying data — path handling code updates required.
+- **Property-level VCs** — EPC, flood risk, searches etc. are Property VCs with paths like `/energyEfficiency/certificate`, not first-class entity VCs. Primary issuers will use the same paths when they adopt the standard.
+
+### 3.4 Entity Separation Principle — The Logbook Test
+
+The governing question for field assignment: **"Does this fact travel with the property to a new owner?"**
+
+- **Property** = enduring facts (the "logbook"): EPC, flood risk, build info, legal questions, fixtures & fittings, environmental data. If a new buyer inherits it, it's a Property fact.
+- **Title** = legal title facts: title number, extents (geoJSON), register extract (including proprietorship as evidence), ownership type (freehold/leasehold), leasehold terms and restrictions, isFirstRegistration, mortgage/charge information. The existing branch 263 work already merges `ownershipsToBeTransferred` into the Title entity.
+- **Transaction** = this-sale facts: numberOfSellers, numberOfNonUkResidentSellers, outstandingMortgage, existingLender, hasHelpToBuyEquityLoan, isLimitedCompanySale. None of these pass the logbook test — they describe this specific transaction, not the property itself.
+- **Ownership** = thin relationship credential: a signed assertion linking a Person or Organisation DID to a Title URN, with status and verification level. The evidence for ownership (proprietorship register) lives on the Title entity — Ownership is the claim, Title holds the evidence.
+
+### 3.5 Existing Work
+
+The entity decomposition is already in progress on the schemas repo:
+- **Branch:** `263-extract-separate-entity-schemas-from-combinedjson-in-preparation-for-pdtf-20`
+- **120 files changed**, 224K lines added
+- Extraction utility: `src/utils/decomposeSchema.js` (576 lines)
+- Entity overlay system: per-entity overlay directories with form-specific overlays
+- Tests: entity validation, overlay application, extension handling
+- V4 entity schemas: Transaction, Property, Title, Person, Participation (Offer not yet created)
+
+---
+
+## 4. Verifiable Credentials
+
+### 4.1 W3C VC Data Model
+
+Each piece of property data becomes a signed Verifiable Credential:
+
+```json
+{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://trust.propdata.org.uk/ns/pdtf/v2"
+  ],
+  "type": ["VerifiableCredential", "PropertyCredential"],
+  "issuer": "did:key:z6Mkh...abc",
+  "validFrom": "2026-03-23T07:00:00Z",
+  "credentialSubject": {
+    "id": "urn:pdtf:uprn:100023456789",
+    "energyEfficiency": {
+      "certificate": {
+        "certificateNumber": "1234-5678-9012-3456-7890",
+        "currentEnergyRating": "C",
+        "currentEnergyEfficiency": 72,
+        "lodgementDate": "2024-01-15"
+      }
+    }
+  },
+  "evidence": [{
+    "type": "ElectronicRecord",
+    "source": "get-energy-performance-data.communities.gov.uk",
+    "retrievedAt": "2026-03-23T06:30:00Z",
+    "method": "API"
+  }],
+  "termsOfUse": [{
+    "type": "PdtfAccessPolicy",
+    "confidentiality": "public",
+    "pii": false
+  }],
+  "credentialStatus": {
+    "id": "https://adapters.propdata.org.uk/status/epc/12345#67890",
+    "type": "BitstringStatusListEntry",
+    "statusPurpose": "revocation",
+    "statusListIndex": "67890",
+    "statusListCredential": "https://adapters.propdata.org.uk/status/epc/12345"
+  },
+  "proof": {
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
+    "verificationMethod": "did:key:z6Mkh...abc#key-1",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z3FXQje..."
+  }
+}
+```
+
+### 4.2 Migration from Verified Claims
+
+| Current (OIDC verified claims) | PDTF 2.0 (W3C VC) |
+|-------------------------------|-------------------|
+| `claimPath` + `claimValue` (REPLACE semantics) | `credentialSubject` with sparse object (MERGE + prune) |
+| `verification.trust_framework` | `issuer` DID + Trusted Issuer Registry lookup |
+| `verification.evidence[].type` (vouch, electronic_record, etc.) | `evidence[].type` (simplified, fewer nesting levels) |
+| `verification.evidence[].document` (OIDC document_details) | `evidence[].source`, `evidence[].retrievedAt`, `evidence[].method` |
+| `terms_of_use` (confidentiality, pii, roleRestrictions) | `termsOfUse[]` with same semantics, cleaner structure |
+| No revocation mechanism | `credentialStatus` with Bitstring Status List for revocation |
+| No cryptographic verification | `proof` with digital signature |
+
+### 4.3 Claims Representation — Sparse Objects + Dependency Pruning
+
+**Decision:** Move away from pathKey:value REPLACE semantics toward sparse objects with dependency pruning. *Consensus needed from LMS and other implementers.*
+
+**Current approach (v1):**
+```json
+{ "claimPath": "/propertyPack/heating/heatingSystem/heatingType", "claimValue": "Central heating" }
+{ "claimPath": "/propertyPack/heating/heatingSystem/centralHeatingDetails/fuelType", "claimValue": "Mains gas" }
+```
+When `heatingType` changes from "Central heating" to "None", the `centralHeatingDetails` claim still exists in the database — REPLACE only overwrites the specific path.
+
+**New approach (v2):**
+```json
+{
+  "credentialSubject": {
+    "id": "urn:pdtf:uprn:100023456789",
+    "heating": {
+      "heatingSystem": {
+        "heatingType": "None"
+      }
+    }
+  }
+}
+```
+State assembly uses MERGE semantics. A **dependency pruning pass** then strips `centralHeatingDetails` because the schema's `oneOf` discriminator on `heatingType` makes it irrelevant when value is "None".
+
+**Why this matters:** The pruning pass is the clean, spec-compliant way to handle dependent data. It requires implementers to understand schema discriminators, but the reference implementation will handle it and the alternative (REPLACE semantics with potential stale nested data) is worse.
+
+---
+
+## 5. Identifiers & Discovery
+
+### 5.1 DID Methods
+
+| Entity | DID Method | Example | Resolution |
+|--------|-----------|---------|------------|
+| Persons | `did:key` | `did:key:z6Mkh...abc` | Self-resolving from public key, no hosting needed |
+| Organisations | `did:web` | `did:web:smithandjones.co.uk` | Hosted DID document at firm's domain |
+| Transactions | `did:web` | `did:web:moverly.com:transactions:abc123` | Hosted DID document at `https://moverly.com/transactions/abc123/did.json` |
+| Trusted Adapters | `did:web` | `did:web:adapters.propdata.org.uk:hmlr` | Hosted DID document with service endpoints for VC requests |
+
+### 5.2 URN Scheme
+
+```
+urn:pdtf:uprn:{uprn}           → Property identifier
+urn:pdtf:titleNumber:{number}  → Title identifier
+urn:pdtf:ownership:{uuid}      → Ownership claim
+urn:pdtf:representation:{uuid} → Representation mandate (Organisation)
+urn:pdtf:consent:{uuid}        → Delegated consent
+urn:pdtf:offer:{uuid}          → Offer relationship
+```
+
+### 5.3 Transaction DID Documents
+
+A transaction's DID document serves as the discovery and API endpoint:
+
+```json
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:web:moverly.com:transactions:abc123",
+  "verificationMethod": [{
+    "id": "did:web:moverly.com:transactions:abc123#key-1",
+    "type": "Ed25519VerificationKey2020",
+    "controller": "did:web:moverly.com:transactions:abc123",
+    "publicKeyMultibase": "z6Mkh..."
+  }],
+  "service": [{
+    "id": "#pdtf-api",
+    "type": "PdtfTransactionEndpoint",
+    "serviceEndpoint": "https://api.moverly.com/v2/transactions/abc123"
+  }, {
+    "id": "#mcp",
+    "type": "McpEndpoint",
+    "serviceEndpoint": "https://api.moverly.com/mcpService/mcp"
+  }]
+}
+```
+
+### 5.4 Access Control
+
+To access restricted or confidential VCs (or the pre-composed state derived from them), a requester must:
+
+1. **Present a valid credential** — an Ownership, Representation, or DelegatedConsent credential proving their relationship to the transaction
+2. **Prove control of their DID** — cryptographic challenge-response proving they hold the private key for the DID in the credential
+3. **Revocation check** — the presented credential must not be revoked (Bitstring Status List check)
+4. **termsOfUse filtering** — the system returns only VCs whose `termsOfUse` policy permits access for the requester's role
+
+Public VCs (title deeds, EPCs, searches) require no authentication.
+
+---
+
+## 6. Trust Architecture
+
+### 6.1 Federated Trust (Model C/D hybrid)
+
+```
+                    ┌──────────────────────┐
+                    │  Trusted Issuer       │
+                    │  Registry (GitHub)    │
+                    │  ─────────────────    │
+                    │  rootIssuers:         │
+                    │    HMLR, VoA, etc.    │
+                    │  trustedProxies:      │
+                    │    moverly, tmGroup   │
+                    └──────────┬───────────┘
+                               │ lookup
+                    ┌──────────▼───────────┐
+                    │  Verifier            │
+                    │  (any participant's   │
+                    │   agent/software)     │
+                    └──────────┬───────────┘
+                               │ verify signature
+                    ┌──────────▼───────────┐
+                    │  Issuer's DID        │
+                    │  (did:web or did:key) │
+                    │  → public key        │
+                    └──────────────────────┘
+```
+
+### 6.2 Trusted Issuer Registry (TIR)
+
+GitHub-based, AI agent-managed, no UI. Lives at `property-data-standards-co/trusted-issuer-registry`.
+
+**Key design:** TIR entries describe **entity:path combinations**, not just issuers. An entry authorises a specific issuer DID for specific data paths on specific entity types:
+
+```json
+{
+  "version": "1.0",
+  "updated": "2026-03-23T07:00:00Z",
+  "issuers": {
+    "hmlr": {
+      "name": "HM Land Registry",
+      "did": "did:web:hmlr.gov.uk",
+      "authorisedPaths": [
+        "Title:/titleNumber",
+        "Title:/titleExtents",
+        "Title:/registerExtract",
+        "Title:/ownership/*"
+      ],
+      "trustLevel": "rootIssuer",
+      "status": "planned"
+    },
+    "mhclg-epc": {
+      "name": "Ministry of Housing — EPC Register",
+      "did": "did:web:epc.communities.gov.uk",
+      "authorisedPaths": [
+        "Property:/energyEfficiency/certificate"
+      ],
+      "trustLevel": "rootIssuer",
+      "status": "planned"
+    },
+    "voa": {
+      "name": "Valuation Office Agency",
+      "did": "did:web:voa.gov.uk",
+      "authorisedPaths": [
+        "Property:/councilTax/*"
+      ],
+      "trustLevel": "rootIssuer",
+      "status": "planned"
+    },
+    "moverly-hmlr": {
+      "name": "Moverly (HMLR Proxy)",
+      "did": "did:web:adapters.propdata.org.uk:hmlr",
+      "authorisedPaths": [
+        "Title:/titleNumber",
+        "Title:/titleExtents",
+        "Title:/registerExtract",
+        "Title:/ownership/*"
+      ],
+      "trustLevel": "trustedProxy",
+      "proxyFor": "hmlr",
+      "status": "active"
+    },
+    "moverly-epc": {
+      "name": "Moverly (EPC Proxy)",
+      "did": "did:web:adapters.propdata.org.uk:epc",
+      "authorisedPaths": [
+        "Property:/energyEfficiency/*"
+      ],
+      "trustLevel": "trustedProxy",
+      "proxyFor": "mhclg-epc",
+      "status": "active"
+    },
+    "moverly-ea": {
+      "name": "Moverly (Environment Agency Proxy)",
+      "did": "did:web:adapters.propdata.org.uk:ea-flood",
+      "authorisedPaths": [
+        "Property:/environmentalIssues/flooding/*"
+      ],
+      "trustLevel": "trustedProxy",
+      "proxyFor": "environment-agency",
+      "status": "active"
+    }
+  },
+  "userAccountProviders": {
+    "moverly": {
+      "name": "Moverly",
+      "did": "did:web:moverly.com",
+      "description": "Issues user DIDs (did:key) as account provider. Validates user identity at onboarding.",
+      "trustLevel": "accountProvider",
+      "status": "active"
+    }
+  }
+}
+```
+
+### 6.3 User DID Issuers in the TIR
+
+Issuers of user DIDs (the `did:key` identities for sellers, buyers, conveyancers etc.) **must also be listed in the TIR**. When verifying an Ownership or Representation credential, the verifier needs to confirm that the person's DID was issued by a recognised account provider. These are categorised as `userAccountProviders` in the TIR — currently Moverly, but extensible to any onboarding platform (e.g. a digital ID wallet provider, an LMS user portal).
+
+### 6.4 Three-Phase Evolution
+
+**Phase 1 (now): Moverly Trusted Proxies**
+- Moverly's existing collectors become VC-issuing adapters
+- Each adapter has its own `did:web` identity and signing key
+- "Map-and-wrap": call existing APIs (HMLR OC1, EPC API, EA flood), repackage as signed VCs
+- TIR lists these as trusted proxies with specified entity:path combinations
+- Moverly is the sole account provider for user DIDs
+
+**Phase 2 (medium-term): Separately Hosted Trusted Adapters**
+- Adapters move to independently hosted infrastructure (potentially a JV or open-source project)
+- Separate domain (`adapters.propdata.org.uk`) with its own GCP project
+- Key material and credentials remain secure regardless of code visibility
+- **Open-sourcing adapters is viable** — the signing keys live in Cloud KMS, not in the code. The code is just the API mapping logic.
+- Multiple organisations can run adapters (e.g. TM Group, LMS) — each with their own TIR entries
+
+**Phase 3 (future): Primary Source Root Issuers**
+- HMLR, MHCLG, Environment Agency issue PDTF-compliant VCs directly
+- TIR entries graduate from `trustedProxy` to `rootIssuer`
+- Signature verification resolves to the primary source's own DID
+- No code changes needed for verifiers — just higher trust level
+- Trusted proxy entries for those paths can be deprecated or kept as fallback
+
+---
+
+## 7. Key Management
+
+### 7.1 Architecture
+
+- **Google Cloud KMS** for all key storage
+- **Ed25519** key algorithm (most common for `did:key`, fast, small signatures)
+- One key per user (generates their `did:key` identity)
+- One key per trusted proxy adapter (for signing proxy-issued VCs)
+- One key for Moverly platform (for signing user-vouched VCs on behalf of users)
+
+### 7.2 Credential Revocation
+
+All issuers **must** support revocation via [W3C Bitstring Status List v2](https://www.w3.org/TR/vc-bitstring-status-list/). This is critical for:
+
+- **Ownership/Representation credentials** — must be revocable when a sale completes, a mandate is withdrawn, or a conveyancer is replaced. Without revocation, a former seller's conveyancer could still present a valid credential.
+- **Property data VCs** — revocable when data is superseded (e.g. new EPC issued, updated flood risk assessment) or found to be incorrect.
+- **User DID credentials** — revocable when a user account is disabled or identity verification is invalidated.
+
+**How it works:**
+1. Each issuer hosts one or more Bitstring Status List credentials at a public URL
+2. Each VC includes a `credentialStatus` field pointing to its entry in the status list
+3. The status list is a compressed bitstring — each bit position maps to a credential
+4. To revoke: issuer flips the bit at the credential's `statusListIndex`
+5. Verifiers fetch the status list (cacheable with short TTL) and check the bit
+
+**Adapter hosting:** Each adapter hosts its own status list endpoints (e.g. `adapters.propdata.org.uk/status/epc/{listId}`). Status lists are signed by the same adapter key used for VC issuance.
+
+### 7.3 Key Hierarchy
+
+```
+Google Cloud KMS
+├── Adapter Keys (did:web, per-adapter)
+│   ├── hmlr-proxy-key → did:web:adapters.propdata.org.uk:hmlr
+│   ├── epc-proxy-key → did:web:adapters.propdata.org.uk:epc
+│   └── ea-flood-proxy-key → did:web:adapters.propdata.org.uk:ea-flood
+│
+├── User Keys (did:key, per-user)
+│   ├── user-{uid}-key → did:key:z6Mkh...abc
+│   └── ...
+│
+└── Platform Key (Moverly's own identity)
+    └── moverly-platform-key → did:web:moverly.com
+```
+
+### 7.4 Digital ID Wallet Binding (Future)
+
+The vision: a user's verified digital identity lives in their mobile wallet (e.g. UK DCMS-approved digital ID). At onboarding:
+
+1. User authenticates via QR code flow (wallet presents identity credential)
+2. Wallet's DID is bound to the Participation credential
+3. All subsequent attestations are signed by the user's wallet-held key
+4. Each login proves: "I am the verified person who is the seller in this transaction"
+5. Through the graph: all their attestations are provably signed by a real, verified person
+
+Initially, Moverly generates and manages keys on behalf of users (custodial). The wallet binding is the migration path to user-held keys.
+
+---
+
+## 8. State Assembly
+
+### 8.1 Dual Composition
+
+Three state assembly functions, used in sequence:
+
+1. **`composeStateFromClaims`** (current) — aggregates pathKey:value verified claims with REPLACE semantics. No changes, backward compatible, continues to power existing v3 endpoints.
+
+2. **`composeV3StateFromGraph`** — traverses the entity graph, assembles VCs into a v3-compatible flat state. Uses the existing combined.json schema shape. Replaces `composeStateFromClaims` once coverage is complete.
+
+3. **`composeV4StateFromGraph`** — traverses the entity graph, assembles VCs into a v4 entity-based state. Internal handlers migrate to this. Uses sparse object MERGE + dependency pruning.
+
+### 8.2 Migration Path
+
+```
+Phase 1: composeStateFromClaims (existing, v3 shape)
+         ↓ parallel
+Phase 2: composeV3StateFromGraph (same output as Phase 1, different input)
+         → validate: outputs must match
+         → once confident, replace Phase 1 internally
+         ↓ parallel
+Phase 3: composeV4StateFromGraph (new entity-based shape)
+         → internal handlers migrate one by one
+         → external v3 API continues to use composeV3StateFromGraph
+```
+
+### 8.3 DiligenceEngine Path Migration
+
+Current DE paths: `propertyPack/heating/heatingSystem/heatingType`
+Entity paths: `property:heating/heatingSystem/heatingType`
+
+The `property:` prefix maps to the Property entity. `pdtfPaths.js` becomes a mapper that resolves `entity:path` to the appropriate entity and sub-path. The paths themselves aren't entity-specific (no UPRN in the path) — the entity context is provided by which entity the path is being evaluated against.
+
+---
+
+## 9. Hosted Adapter Services
+
+### 9.1 Architecture
+
+Separate domain: `adapters.propdata.org.uk` (new GCP project, potentially open-sourced).
+
+Each adapter:
+- Has its own `did:web` identity (DID document at `adapters.propdata.org.uk/{adapter}/did.json`)
+- Has its own signing key in Google Cloud KMS
+- Calls existing source APIs (HMLR OC1, EPC API, EA flood data, LLC API, etc.)
+- Issues signed VCs in PDTF 2.0 format
+- Is listed in the Trusted Issuer Registry as a trusted proxy
+
+### 9.2 Initial Adapters (from existing collectors)
+
+| Adapter | Source API | Claim Paths | Priority |
+|---------|-----------|-------------|----------|
+| `hmlr` | HMLR OC1/OC2 | `/titles/*`, `/ownership/*` | High |
+| `epc` | MHCLG EPC API | `/energyEfficiency/*` | High (just rebuilt) |
+| `ea-flood` | EA Flood Risk API | `/environmentalIssues/flooding/*` | High |
+| `llc` | HMLR LLC API | `/localLandCharges/*` | Medium |
+| `bsr` | BSR Register API | `/buildingSafety/*` | Medium |
+| `voa` | VOA Council Tax | `/councilTax/*` | Lower |
+
+### 9.3 Adapter VC Issuance Flow (Synchronous)
+
+```
+Request VC → Adapter validates requester
+           → Adapter calls source API
+           → Adapter maps response to PDTF entity schema
+           → Adapter signs VC with its KMS key
+           → Returns signed VC
+```
+
+### 9.4 Access Control for Adapter API
+
+The general adapter API access control mechanism:
+
+1. Requester presents an **Ownership, Representation, or DelegatedConsent credential** for the relevant transaction
+2. Requester proves **DID control** (challenge-response)
+3. Adapter verifies credential is **not revoked** (Bitstring Status List)
+4. Adapter checks `termsOfUse` of requested entity:paths against requester's role
+4. If authorised: fetch data, issue VC, return
+5. If public data: no authentication required
+
+*(Full spec: `papers/pdtf-v2/12-adapter-access-control.md` — TBD)*
+
+---
+
+## 10. Reference Implementations
+
+### 10.1 Planned
+
+| Component | Description | Language | Repo |
+|-----------|-------------|---------|------|
+| **VC Validator** | Validates VC signature, checks issuer against TIR, verifies proof | TypeScript | `property-data-standards-co/pdtf-vc-validator` |
+| **Graph Composer** | Traverses entity graph, assembles state from VCs | TypeScript | Part of `@pdtf/schemas` |
+| **DID Resolver** | Resolves `did:key` and `did:web` identifiers | TypeScript | `property-data-standards-co/pdtf-did-resolver` |
+| **Credential Builder** | Creates and signs VCs with PDTF context | TypeScript | `property-data-standards-co/pdtf-vc-builder` |
+
+### 10.2 Validator Flow
+
+```
+Input: VC document
+  → Parse and validate structure (JSON-LD context, required fields)
+  → Extract issuer DID
+  → Resolve DID → public key
+  → Verify proof signature against public key
+  → Look up issuer in TIR (cached)
+  → Check issuer is authorised for the credential's entity:path combinations
+  → Check credential is not expired
+  → Check credential revocation status:
+      → Fetch Bitstring Status List from credentialStatus.statusListCredential (cached, short TTL)
+      → Verify status list credential signature
+      → Check bit at statusListIndex — if set, credential is revoked
+  → Return: { valid: true, trustLevel: "trustedProxy", issuer: "moverly-epc", revoked: false }
+```
+
+---
+
+## 11. NPTN Integration
+
+NPTN (National Property Transaction Network) is LMS's implementation of PDTF v1 as a data hub. PDTF 2.0 needs to work with NPTN, not replace it.
+
+### 11.1 Strategy
+
+- NPTN continues as the transaction orchestration layer (the "road")
+- PDTF 2.0 VCs flow through NPTN as the data format
+- NPTN validates VCs using the reference validator
+- NPTN's existing claim filtering (confidentiality, role-based) maps to VC `termsOfUse`
+- LMS documentation (spec 10) explains the architecture in terms they can implement
+
+### 11.2 LMS Documentation Plan
+
+Comprehensive guide covering:
+- Why VCs (business case, not just technical)
+- How NPTN handles VCs (receive, validate, store, filter, serve)
+- Migration path from current verified claims to VCs
+- Reference validator integration
+- Timeline aligned with NPTN roadmap
+
+---
+
+## 12. API Design
+
+Consider MCP-compliant design (we already have MCP server in !3117). The transaction DID document's service endpoint could point to an MCP server, making every transaction a discoverable, agent-accessible resource.
+
+*(Full spec: `papers/pdtf-v2/11-api-design.md` — TBD)*
+
+---
+
+## 13. Sub-Specs Index
+
+| # | Document | Status | Description |
+|---|----------|--------|-------------|
+| 00 | `00-architecture-overview.md` | **This document** | Master reference |
+| 01 | `01-entity-graph.md` | DRAFTED | V4 schema decomposition, ID-keyed collections, entity relationships |
+| 02 | `02-vc-data-model.md` | DRAFTED | W3C VC mapping, evidence model, termsOfUse, claims representation |
+| 03 | `03-did-methods.md` | DRAFTED | did:key, did:web, URN schemes, DID document structure |
+| 04 | `04-trusted-issuer-registry.md` | DRAFTED | GitHub-based TIR, entry schema, validation, caching |
+| 05 | `05-hosted-adapter-services.md` | TODO | Adapter architecture, issuance flow, deployment |
+| 06 | `06-key-management.md` | DRAFTED | Google Cloud KMS, key hierarchy, rotation, wallet binding |
+| 07 | `07-state-assembly.md` | DRAFTED | composeV3/V4StateFromGraph, dependency pruning, migration |
+| 08 | `08-diligence-engine-migration.md` | TODO | entity:path mapping, pdtfPaths.js evolution |
+| 09 | `09-nptn-integration.md` | TODO | VC flow through NPTN, LMS migration guide |
+| 10 | `10-lms-documentation.md` | TODO | Architecture guide for LMS stakeholders |
+| 11 | `11-api-design.md` | TODO | MCP-compliant transaction API, DID document service endpoints |
+| 12 | `12-adapter-access-control.md` | TODO | Participation credential presentation, DID proof, role filtering |
+| 13 | `13-reference-implementations.md` | DRAFTED | VC validator, graph composer, DID resolver specs |
+| 14 | `14-credential-revocation.md` | DRAFTED | Bitstring Status List hosting, revocation flows, cache strategy |
+
+---
+
+## 14. Decisions Log
+
+| # | Decision | Date | Status |
+|---|----------|------|--------|
+| D1 | Entity model: Transaction, Property, Title, Person, Organisation, Ownership, Representation, DelegatedConsent, Offer. Mortgage flagged for future. | 2026-03-23 | ✅ Confirmed |
+| D2 | Buyers participate only through Offers, not Participation | 2026-03-23 | ✅ Confirmed |
+| D3 | Representation credentials issued to Organisations (firms), not Persons (individual solicitors). The professional duty and insurance liability sits with the firm. | 2026-03-24 | ✅ Confirmed |
+| D4 | Property-level VCs (not first-class entity VCs for EPC etc.) | 2026-03-23 | ✅ Confirmed |
+| D5 | Sparse objects + dependency pruning (not pathKey:value REPLACE) | 2026-03-23 | 🟡 Needs consensus |
+| D6 | Simpler evidence model than current OIDC-derived schema | 2026-03-23 | ✅ Confirmed |
+| D7 | did:key for users, did:web for transactions and adapters | 2026-03-23 | ✅ Confirmed |
+| D8 | GitHub-based TIR at property-data-standards-co | 2026-03-23 | ✅ Confirmed |
+| D9 | Separate domain for hosted adapters, open-source viable (keys in KMS, not code) | 2026-03-23 | ✅ Confirmed |
+| D10 | Dual state assembly: composeV3StateFromGraph + composeV4StateFromGraph | 2026-03-23 | ✅ Confirmed |
+| D11 | DE paths: `property:heating/...` style (entity prefix, not URN in path) | 2026-03-23 | ✅ Confirmed |
+| D12 | Consider MCP-compliant API design | 2026-03-23 | 🟡 Open |
+| D13 | Access control: participation credential + DID proof for restricted VCs | 2026-03-23 | ✅ Confirmed |
+| D14 | Digital ID wallet binding at onboarding (future, custodial for now) | 2026-03-23 | ✅ Confirmed |
+| D15 | ID-keyed collections in v4 (breaking change from arrays) | 2026-03-23 | ✅ Confirmed |
+| D16 | Ed25519 key algorithm | 2026-03-23 | ✅ Confirmed |
+| D17 | Agent: Atlas 🗺️ — dedicated agent for PDTF 2.0 work | 2026-03-23 | ✅ Confirmed |
+| D18 | Credential revocation via W3C Bitstring Status List — all issuers must support | 2026-03-23 | ✅ Confirmed |
+| D19 | Participation renamed → Ownership, Representation, DelegatedConsent | 2026-03-23 | ✅ Confirmed |
+| D20 | TIR describes entity:path combos (e.g. "Property:/energyEfficiency/certificate") | 2026-03-23 | ✅ Confirmed |
+| D21 | User DID issuers (account providers) must also be in TIR | 2026-03-23 | ✅ Confirmed |
+| D22 | Relationship model is Transaction-centric (not Property→Title→Transaction) | 2026-03-23 | ✅ Confirmed |
+| D23 | Unregistered titles need identifier method (urn:pdtf:unregisteredTitle:*) | 2026-03-23 | 🟡 Needs design |
+| D24 | 3-phase evolution: Moverly proxies → separately hosted adapters (JV?) → root issuers | 2026-03-23 | ✅ Confirmed |
+| D25 | Adapters safe to open-source — key material in Cloud KMS, not in code | 2026-03-23 | ✅ Confirmed |
+| D26 | Organisation as first-class entity with did:web identifiers (firms ≠ persons) | 2026-03-24 | ✅ Confirmed |
+| D27 | Logbook test governs field assignment: Property=enduring facts, Title=legal title facts, Transaction=this-sale facts, Ownership=thin relationship credential | 2026-03-24 | ✅ Confirmed |
+| D28 | Ownership credential is thin (DID→Title URN + status/verification). Evidence lives on Title.registerExtract.proprietorship (claim-vs-evidence separation). | 2026-03-24 | ✅ Confirmed |
+
+---
+
+## 15. Implementation Priority
+
+1. **Entity graph spec** (01) — formalise v4 schemas, build on existing branch work
+2. **VC data model** (02) — define the credential format, evidence, termsOfUse
+3. **Trusted Issuer Registry** (04) — GitHub repo, initial entries, validation schema
+4. **DID methods** (03) — key generation, DID document hosting
+5. **Key management** (06) — Google Cloud KMS setup
+6. **One adapter PoC** (05) — EPC adapter (just rebuilt the collector, natural first candidate)
+7. **State assembly** (07) — composeV3StateFromGraph with validation against existing output
+8. **Reference implementations** (13) — VC validator, DID resolver
+9. **Access control** (12) — participation credential verification
+10. **DE migration** (08) — entity:path mapping
+11. **NPTN integration** (09) — VC flow design for LMS
+12. **API design** (11) — MCP-compliant endpoints
+13. **LMS documentation** (10) — stakeholder guide
+
+---
+
+*This is a living document. As sub-specs are written and decisions are made, this overview will be updated to reflect the current state.*

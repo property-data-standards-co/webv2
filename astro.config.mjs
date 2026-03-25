@@ -1,0 +1,128 @@
+// @ts-check
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+
+// https://astro.build/config
+export default defineConfig({
+	integrations: [
+		starlight({
+			title: 'PDTF 2.0 — Property Data Trust Framework',
+			social: [
+				{
+					icon: 'github',
+					label: 'GitHub',
+					href: 'https://github.com/property-data-standards-co',
+				},
+			],
+			sidebar: [
+				{
+					label: 'About',
+					items: [
+						{ label: 'The Problem', slug: 'about/problem' },
+						{ label: 'The Solution', slug: 'about/solution' },
+						{ label: 'Trust Model', slug: 'about/trust-model' },
+						{ label: 'Roadmap', slug: 'about/roadmap' },
+					],
+				},
+				{
+					label: 'Architecture',
+					items: [
+						{ label: 'Overview', slug: 'architecture/overview' },
+						{ label: 'Entity Graph', slug: 'architecture/entities' },
+						{ label: 'Credentials', slug: 'architecture/credentials' },
+						{ label: 'Identifiers', slug: 'architecture/identifiers' },
+						{ label: 'Trust', slug: 'architecture/trust' },
+						{ label: 'Migration', slug: 'architecture/migration' },
+					],
+				},
+				{
+					label: 'Developer Docs',
+					items: [
+						{ label: 'Quickstart', slug: 'docs/quickstart' },
+						{
+							label: 'Concepts',
+							items: [
+								{ label: 'Credentials', slug: 'docs/concepts/credentials' },
+								{ label: 'Entities', slug: 'docs/concepts/entities' },
+								{ label: 'DIDs', slug: 'docs/concepts/dids' },
+								{ label: 'Signing', slug: 'docs/concepts/signing' },
+								{ label: 'Revocation', slug: 'docs/concepts/revocation' },
+								{ label: 'Trusted Issuer Registry', slug: 'docs/concepts/tir' },
+							],
+						},
+						{
+							label: 'Guides',
+							items: [
+								{ label: 'Verify a Credential', slug: 'docs/guides/verify-credential' },
+								{ label: 'Issue a Credential', slug: 'docs/guides/issue-credential' },
+								{ label: 'Build an Adapter', slug: 'docs/guides/build-adapter' },
+								{ label: 'Integrate with TIR', slug: 'docs/guides/integrate-tir' },
+								{ label: 'Check Revocation', slug: 'docs/guides/check-revocation' },
+								{ label: 'Host a DID Document', slug: 'docs/guides/host-did-document' },
+								{ label: 'Organisation Onboarding', slug: 'docs/guides/org-onboarding' },
+							],
+						},
+						{
+							label: 'Reference',
+							items: [
+								{ label: 'Schemas', slug: 'docs/reference/schemas' },
+								{ label: 'Credential Types', slug: 'docs/reference/credential-types' },
+								{ label: 'DID Methods', slug: 'docs/reference/did-methods' },
+								{ label: 'URN Scheme', slug: 'docs/reference/urn-scheme' },
+								{ label: 'TIR Schema', slug: 'docs/reference/tir-schema' },
+								{ label: 'Status Codes', slug: 'docs/reference/status-codes' },
+							],
+						},
+						{
+							label: 'Packages',
+							items: [
+								{ label: '@pdtf/key-manager', slug: 'docs/packages/key-manager' },
+								{ label: '@pdtf/status-list', slug: 'docs/packages/status-list' },
+								{ label: '@pdtf/did-resolver', slug: 'docs/packages/did-resolver' },
+								{ label: '@pdtf/tir-tools', slug: 'docs/packages/tir-tools' },
+								{ label: '@pdtf/did-tools', slug: 'docs/packages/did-tools' },
+								{ label: '@pdtf/vc-validator', slug: 'docs/packages/vc-validator' },
+								{ label: '@pdtf/cli', slug: 'docs/packages/cli' },
+							],
+						},
+					],
+				},
+				{
+					label: 'Specifications',
+					items: [
+						{ label: '00 — Architecture Overview', slug: 'specs/00-architecture-overview' },
+						{ label: '01 — Entity Graph', slug: 'specs/01-entity-graph' },
+						{ label: '02 — VC Data Model', slug: 'specs/02-vc-data-model' },
+						{ label: '03 — DID Methods', slug: 'specs/03-did-methods' },
+						{ label: '04 — Trusted Issuer Registry', slug: 'specs/04-trusted-issuer-registry' },
+						{ label: '06 — Key Management', slug: 'specs/06-key-management' },
+						{ label: '07 — State Assembly', slug: 'specs/07-state-assembly' },
+						{ label: '13 — Reference Implementations', slug: 'specs/13-reference-implementations' },
+						{ label: '14 — Credential Revocation', slug: 'specs/14-credential-revocation' },
+					],
+				},
+				{
+					label: 'Registry',
+					items: [
+						{ label: 'Trusted Issuer Registry', slug: 'registry' },
+					],
+				},
+				{
+					label: 'Blog',
+					items: [
+						{ label: 'Why Verifiable Credentials', slug: 'blog/why-verifiable-credentials' },
+						{ label: 'The Entity Graph', slug: 'blog/entity-graph-decomposition' },
+					],
+				},
+				{
+					label: 'Community',
+					items: [
+						{ label: 'Contribute', slug: 'community/contribute' },
+						{ label: 'Governance', slug: 'community/governance' },
+						{ label: 'GitHub', slug: 'community/github' },
+					],
+				},
+			],
+		}),
+	],
+});

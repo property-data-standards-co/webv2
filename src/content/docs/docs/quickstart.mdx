@@ -1,0 +1,166 @@
+---
+title: Developer Quickstart
+description: Get started with PDTF 2.0 in 5 minutes — verify credentials, look up issuers, and check revocation status.
+---
+
+Get up and running with PDTF 2.0 in five minutes. This guide covers the three operations every implementer needs: verifying a credential, looking up an issuer in the Trusted Issuer Registry, and checking revocation status.
+
+:::caution[Pre-release]
+The `@pdtf/*` packages are in active development and not yet published to npm. Code examples show the target API — check the [GitHub organisation](https://github.com/property-data-standards-co) for current status.
+:::
+
+## Install the packages
+
+```bash
+npm install @pdtf/vc-validator @pdtf/tir-tools @pdtf/did-resolver
+```
+
+## 1. Verify a credential
+
+Given a W3C Verifiable Credential containing PDTF entity data, verify its signature, issuer authorisation, and revocation status in one call:
+
+```typescript
+import { verifyCredential } from '@pdtf/vc-validator';
+
+const credential = {
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://propdata.org.uk/ns/v4"
+  ],
+  "type": ["VerifiableCredential", "PropertyCredential"],
+  "issuer": "did:web:adapter.moverly.com",
+  "credentialSubject": {
+    "id": "urn:pdtf:uprn:100023336956",
+    "type": "Property",
+    "address": {
+      "line1": "10 Downing Street",
+      "postcode": "SW1A 2AA"
+    },
+    "energyPerformance": {
+      "currentRating": "C",
+      "certificateNumber": "0000-0000-0000-0000-0000"
+    }
+  },
+  "proof": { /* Ed25519 signature */ }
+};
+
+const result = await verifyCredential(credential, {
+  checkTIR: true,       // verify issuer is in the Trusted Issuer Registry
+  checkRevocation: true  // verify credential hasn't been revoked
+});
+
+if (result.verified) {
+  console.log('Credential is valid');
+  console.log('Issuer trust level:', result.issuer.trustLevel);
+  // → 'root-issuer' | 'accredited-issuer' | 'trusted-proxy'
+} else {
+  console.error('Verification failed:', result.errors);
+}
+```
+
+### What `verifyCredential` checks
+
+1. **Signature** — resolves the issuer's DID document, extracts the verification method, and validates the `eddsa-jcs-2022` proof
+2. **Issuer authorisation** — looks up the issuer in the TIR and confirms they're authorised for this entity type and data path
+3. **Revocation status** — fetches the Bitstring Status List and checks the credential's status bit
+4. **Schema conformance** — validates the `credentialSubject` against the PDTF v4 JSON schema
+
+## 2. Look up an issuer in the TIR
+
+The Trusted Issuer Registry tells you who is authorised to issue which types of credentials:
+
+```typescript
+import { lookupIssuer } from '@pdtf/tir-tools';
+
+// Check if an issuer is authorised for a specific entity:path
+const entry = await lookupIssuer('did:web:adapter.moverly.com', {
+  entityType: 'property',
+  path: 'energyPerformance'
+});
+
+if (entry) {
+  console.log('Trust level:', entry.trustLevel);
+  console.log('Status:', entry.status);
+  console.log('Authorised paths:', entry.authorisedPaths);
+} else {
+  console.log('Issuer not found in TIR for this entity:path');
+}
+```
+
+### List all issuers for an entity type
+
+```typescript
+import { listIssuers } from '@pdtf/tir-tools';
+
+const issuers = await listIssuers({
+  entityType: 'property',
+  status: 'active'
+});
+
+for (const issuer of issuers) {
+  console.log(`${issuer.name} (${issuer.did})`);
+  console.log(`  Trust: ${issuer.trustLevel}`);
+  console.log(`  Paths: ${issuer.authorisedPaths.join(', ')}`);
+}
+```
+
+## 3. Check revocation status
+
+Every PDTF credential includes a `credentialStatus` field pointing to a Bitstring Status List. Check it directly:
+
+```typescript
+import { checkRevocation } from '@pdtf/vc-validator';
+
+const status = await checkRevocation(credential);
+
+if (status.revoked) {
+  console.log('Credential has been revoked');
+  console.log('Revoked at:', status.revokedAt);
+} else {
+  console.log('Credential is active');
+}
+```
+
+The status list is a compact bitstring where each credential is assigned an index. Issuers publish the status list at a public URL and flip individual bits to revoke credentials — no need to contact the issuer directly.
+
+## 4. Resolve a DID
+
+Look up a DID document for any PDTF entity that uses `did:web`:
+
+```typescript
+import { resolve } from '@pdtf/did-resolver';
+
+// Resolve a transaction's DID document
+const doc = await resolve('did:web:platform.example.com:transactions:abc123');
+
+console.log('Service endpoints:', doc.service);
+// → [{ type: 'PDTFv4API', serviceEndpoint: 'https://...' }]
+
+console.log('Verification methods:', doc.verificationMethod);
+// → [{ type: 'Ed25519VerificationKey2020', publicKeyMultibase: 'z6Mkh...' }]
+```
+
+## CLI usage
+
+The `@pdtf/cli` package provides command-line equivalents:
+
+```bash
+# Verify a credential from a JSON file
+pdtf verify credential.json
+
+# Look up an issuer
+pdtf tir lookup did:web:adapter.moverly.com --entity property --path energyPerformance
+
+# Check revocation
+pdtf revocation check credential.json
+
+# Resolve a DID
+pdtf did resolve did:web:platform.example.com:transactions:abc123
+```
+
+## Next steps
+
+- [Understand the entity graph](/architecture/entities/) — how property data decomposes into nine entity types
+- [Read the VC data model spec](/specs/02-vc-data-model/) — full credential format reference
+- [Explore the TIR spec](/specs/04-trusted-issuer-registry/) — registry schema and trust levels
+- [Browse the packages](/docs/packages/vc-validator/) — API reference for each package

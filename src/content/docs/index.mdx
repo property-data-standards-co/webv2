@@ -1,0 +1,96 @@
+---
+title: PDTF 2.0 — Property Data Trust Framework
+description: An open standard for verifiable property data in UK conveyancing. Verify the data, not the intermediary.
+template: splash
+hero:
+  tagline: Property data you can trust. Verify the data, not the intermediary.
+  actions:
+    - text: Read the overview
+      link: /architecture/overview/
+      icon: right-arrow
+      variant: primary
+    - text: Developer quickstart
+      link: /docs/quickstart/
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What is PDTF 2.0?
+
+The Property Data Trust Framework is an open standard for making property data independently verifiable. Every piece of data — from title registers to EPC certificates — is cryptographically signed by its source, can be verified by anyone, and can be revoked when it's no longer valid.
+
+No need to trust the platform serving the data. Verify the proof.
+
+PDTF 2.0 replaces trust in intermediaries with trust in cryptography. Built on W3C Verifiable Credentials, Decentralised Identifiers, and a federated Trusted Issuer Registry, it provides the infrastructure for a property data ecosystem where data provenance is provable and verification is automatic.
+
+---
+
+## Who is this for?
+
+<CardGrid>
+  <Card title="Property professionals" icon="document">
+    Estate agents, conveyancers, lenders, and regulators who need to trust the data they're working with.
+
+    [Understand the problem →](/about/problem/)
+  </Card>
+  <Card title="Technical leaders" icon="setting">
+    CTOs, architects, and product managers evaluating PDTF for integration into their systems.
+
+    [Read the architecture →](/architecture/overview/)
+  </Card>
+  <Card title="Developers" icon="laptop">
+    Engineers building adapters, verifying credentials, or integrating property data into applications.
+
+    [Get started →](/docs/quickstart/)
+  </Card>
+</CardGrid>
+
+---
+
+## The entity graph
+
+PDTF 2.0 decomposes the monolithic property data pack into nine distinct entities — Transaction, Property, Title, Person, Organisation, Ownership, Representation, DelegatedConsent, and Offer — each independently verifiable and composable.
+
+This means a title register credential issued by HM Land Registry can be verified independently of the transaction it belongs to. An EPC credential can travel with the property, not just the transaction. And ownership changes can be revoked without invalidating the entire data pack.
+
+[Learn about the entity graph →](/architecture/entities/)
+
+---
+
+## Specifications
+
+The complete PDTF 2.0 specification suite covers architecture, entity schemas, credential formats, identifier methods, trust infrastructure, and more.
+
+<CardGrid>
+  <Card title="Architecture Overview" icon="open-book">
+    The high-level design and trust evolution model.
+
+    [Read spec →](/specs/00-architecture-overview/)
+  </Card>
+  <Card title="Entity Graph" icon="list-format">
+    Nine entities, their schemas, and how they compose.
+
+    [Read spec →](/specs/01-entity-graph/)
+  </Card>
+  <Card title="VC Data Model" icon="approve-check-circle">
+    How property data maps to W3C Verifiable Credentials.
+
+    [Read spec →](/specs/02-vc-data-model/)
+  </Card>
+  <Card title="Trusted Issuer Registry" icon="star">
+    The federated registry that establishes who can issue what.
+
+    [Read spec →](/specs/04-trusted-issuer-registry/)
+  </Card>
+</CardGrid>
+
+[View all specifications →](/specs/00-architecture-overview/)
+
+---
+
+## Open standard, open source
+
+PDTF 2.0 is developed by the Property Data Standards Company and published under an open licence. The specifications, reference implementations, and tooling are all available on GitHub.
+
+[Visit us on GitHub →](https://github.com/property-data-standards-co)
