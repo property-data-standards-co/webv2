@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [spec-updated]
   workflow_dispatch:
 
 permissions:
@@ -27,25 +29,14 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Sync specs from spec repo
+        run: bash scripts/sync-specs.sh
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build site
         run: npm run build
-
-      - name: Generate llms-full.txt
-        run: |
-          echo "# PDTF 2.0 — Property Data Trust Framework" > dist/llms-full.txt
-          echo "> Complete specification text for AI consumption." >> dist/llms-full.txt
-          echo "" >> dist/llms-full.txt
-          for spec in src/content/docs/specs/*.md; do
-            filename=$(basename "$spec")
-            echo "---" >> dist/llms-full.txt
-            echo "" >> dist/llms-full.txt
-            # Strip frontmatter then append
-            sed '1{/^---$/!q;};1,/^---$/d' "$spec" >> dist/llms-full.txt
-            echo "" >> dist/llms-full.txt
-          done
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
