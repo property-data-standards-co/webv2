@@ -1,58 +1,35 @@
 # PDTF 2.0 — Property Data Trust Framework
 
-> The Property Data Trust Framework (PDTF) 2.0 is an open specification for representing, signing, and verifying property transaction data using W3C Verifiable Credentials, Decentralised Identifiers (DIDs), and a federated Trusted Issuer Registry.
+> The Property Data Trust Framework version 2.0 replaces OpenID Connect verified claims with W3C Verifiable Credentials, decomposes the monolithic property data schema into an entity graph, and introduces decentralised identifiers and cryptographic signing.
 
 ## Overview
-
-PDTF 2.0 replaces the OpenID Connect verified claims model with W3C Verifiable Credentials. It decomposes the monolithic property transaction schema into nine entity types — Transaction, Property, Title, Person, Organisation, Ownership, Representation, DelegatedConsent, and Offer — each independently identifiable and independently verifiable.
-
-Key features:
-- Entity graph: 9 entity types with stable identifiers (DIDs, URNs)
-- W3C Verifiable Credentials Data Model v2.0 with eddsa-jcs-2022 signatures
-- Decentralised Identifiers: did:key (persons), did:web (organisations, transactions)
-- Trusted Issuer Registry: federated trust model for credential issuance
-- Bitstring Status List: credential revocation
-- Backward compatibility: state assembly functions for v3 format
-
-## Specifications
-
-- Architecture Overview: https://property-data-standards-co.github.io/webv2/specs/00-architecture-overview/
-- Entity Graph & Schema: https://property-data-standards-co.github.io/webv2/specs/01-entity-graph/
-- VC Data Model: https://property-data-standards-co.github.io/webv2/specs/02-vc-data-model/
-- DID Methods & Identifiers: https://property-data-standards-co.github.io/webv2/specs/03-did-methods/
-- Trusted Issuer Registry: https://property-data-standards-co.github.io/webv2/specs/04-trusted-issuer-registry/
-- Key Management: https://property-data-standards-co.github.io/webv2/specs/06-key-management/
-- State Assembly: https://property-data-standards-co.github.io/webv2/specs/07-state-assembly/
-- Reference Implementations: https://property-data-standards-co.github.io/webv2/specs/13-reference-implementations/
-- Credential Revocation: https://property-data-standards-co.github.io/webv2/specs/14-credential-revocation/
-
-## Documentation
-
-- Architecture Overview: https://property-data-standards-co.github.io/webv2/architecture/overview/
-- Entity Graph: https://property-data-standards-co.github.io/webv2/architecture/entities/
-- Developer Quickstart: https://property-data-standards-co.github.io/webv2/docs/quickstart/
+- Website: https://property-data-standards-co.github.io/web/
+- GitHub: https://github.com/property-data-standards-co
+- Author: Ed Molyneux / Moverly
 
 ## Key Concepts
+- Entity Graph: Transaction, Property, Title, Person, Organisation, Ownership, Representation, DelegatedConsent, Offer
+- Credentials: W3C Verifiable Credentials v2.0 with DataIntegrityProof (eddsa-jcs-2022, Ed25519)
+- Identity: did:key (persons), did:web (organisations, transactions), urn:pdtf:* (properties, titles, relationships)
+- Trust: Trusted Issuer Registry (TIR) — git-hosted, entity:path authorisation
+- Revocation: W3C Bitstring Status List v1.0
+- Three trust phases: Moverly trusted proxies → hosted adapters → primary source root issuers
 
-### Entity Types
-- Transaction (did:web) — sale metadata, status, milestones
-- Property (urn:pdtf:uprn:{uprn}) — physical property data, the "logbook"
-- Title (urn:pdtf:titleNumber:{number}) — legal title from HM Land Registry
-- Person (did:key) — natural person, role-free
-- Organisation (did:web) — law firm, estate agency, lender
-- Ownership — links Person to Title, revocable
-- Representation — delegates authority to Organisation, revocable
-- DelegatedConsent — authorised data access
-- Offer — links buyer to Transaction
+## Specifications
+- [Architecture Overview](https://property-data-standards-co.github.io/web/specs/00-architecture-overview/)
+- [Entity Graph](https://property-data-standards-co.github.io/web/specs/01-entity-graph/)
+- [VC Data Model](https://property-data-standards-co.github.io/web/specs/02-vc-data-model/)
+- [DID Methods](https://property-data-standards-co.github.io/web/specs/03-did-methods/)
+- [Trusted Issuer Registry](https://property-data-standards-co.github.io/web/specs/04-trusted-issuer-registry/)
+- [Key Management](https://property-data-standards-co.github.io/web/specs/06-key-management/)
+- [State Assembly](https://property-data-standards-co.github.io/web/specs/07-state-assembly/)
+- [Reference Implementations](https://property-data-standards-co.github.io/web/specs/13-reference-implementations/)
+- [Credential Revocation](https://property-data-standards-co.github.io/web/specs/14-credential-revocation/)
 
-### Trust Model
-Three-phase evolution:
-1. Trusted proxies (current) — small number of organisations re-issue data as VCs
-2. Independent adapters — third parties build and host their own adapters
-3. Primary source issuers — data sources issue VCs directly
+## Implementation
+- [@pdtf/core](https://github.com/property-data-standards-co/core) — signing, verification, DIDs, status lists, TIR client
+- [Trusted Issuer Registry](https://github.com/property-data-standards-co/tir) — live registry data
+- [Schemas](https://github.com/property-data-standards-co/schemas) — JSON Schemas
 
-## Organisation
-
-- Publisher: Property Data Standards Company
-- GitHub: https://github.com/property-data-standards-co
-- Website: https://propdata.org.uk
+## Consensus Questions
+17 open questions (Q1.1–Q6.3) requiring industry consensus, documented in the Architecture Overview §14.

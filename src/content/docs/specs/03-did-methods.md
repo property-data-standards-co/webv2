@@ -1,12 +1,12 @@
 ---
 title: "Spec: DID Methods & Identifiers"
-description: "DID methods (did:key, did:web), URN identifier schemes, and DID document structure for PDTF 2.0."
+description: "DID methods (did:key, did:web, urn:pdtf) used for identity in PDTF 2.0."
 ---
 
 # PDTF 2.0 — Sub-spec 03: DID Methods & Identifiers
 
-**Version:** 0.1 (Draft)
-**Date:** 24 March 2026
+**Version:** 0.2 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
 **Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
@@ -58,9 +58,9 @@ It does **not** cover:
 
 | ID | Decision | Rationale |
 |----|----------|-----------|
-| **D7** | `did:key` for Persons; `did:web` for Organisations, Transactions, and Trusted Adapters | Persons need zero-infrastructure identifiers derived from their signing keys. Organisations, transactions, and adapters need discoverable service endpoints that `did:web` provides. |
+| **D7** | `did:key` for Persons; `did:key` or `did:web` for Organisations; `did:web` for Transactions and Trusted Adapters | Persons need zero-infrastructure identifiers derived from their signing keys. Organisations may use provider-managed `did:key` (the common case — issued by their case management platform) or self-hosted `did:web` (for firms wanting direct control). Transactions and adapters need discoverable service endpoints that `did:web` provides. |
 | **D23** | `urn:pdtf:unregisteredTitle:{uuid}` for unregistered titles | Unregistered land has no HMLR title number. A PDTF-minted UUID provides a stable identifier until first registration completes. **Open:** confirm UUID version and whether the URN should survive first registration. |
-| **D26** | `did:web` for Organisations, hosted at the firm's domain | Conveyancer firms and estate agencies host their own DID documents, proving domain control. Alternative (central registry hosting) rejected — firms should own their identity. |
+| **D26** | `did:key` (provider-managed) or `did:web` (self-hosted) for Organisations | Most organisations will use provider-managed `did:key` identifiers issued by their account provider (e.g. LMS). The provider verifies the organisation's identity and regulatory status. Self-hosted `did:web` at the firm's domain is available for firms wanting direct control. |
 
 ---
 
@@ -124,6 +124,7 @@ Final DID:
 |----------|-----------|
 | Individual person (seller, buyer) | `did:key` ✓ |
 | VC issuer who is a natural person | `did:key` ✓ |
+| Organisation managed by an account provider | `did:key` ✓ (the common case) |
 | Any entity needing service endpoints | `did:web` (not `did:key`) |
 
 ### 2.2 did:web — Organisations, Transactions, and Trusted Adapters
@@ -166,7 +167,8 @@ Percent-encoded characters:
 
 | Entity type | DID pattern | Example | Hosted by |
 |-------------|-------------|---------|-----------|
-| Organisation (firm) | `did:web:{firm-domain}` | `did:web:smithandjones.co.uk` | The firm itself |
+| Organisation (provider-managed) | `did:key:z6Mk{base58}` | `did:key:z6MkpJmq...` | Implicit (no hosting — key managed by account provider) |
+| Organisation (self-hosted) | `did:web:{firm-domain}` | `did:web:smithandjones.co.uk` | The firm itself |
 | Transaction | `did:web:{platform}:transactions:{id}` | `did:web:moverly.com:transactions:abc123` | The platform hosting the transaction |
 | Trusted Adapter | `did:web:{adapter-host}:{adapter-name}` | `did:web:adapters.propdata.org.uk:hmlr` | The adapter operator |
 
@@ -174,7 +176,8 @@ Percent-encoded characters:
 
 Hosting a DID document at a domain constitutes proof of domain control. This has implications:
 
-- **Organisations:** A conveyancer firm at `did:web:smithandjones.co.uk` has proven they control the `smithandjones.co.uk` domain. Combined with TIR registration (which cross-references SRA number and Companies House number), this provides a strong identity binding.
+- **Organisations (did:web):** A conveyancer firm at `did:web:smithandjones.co.uk` has proven they control the `smithandjones.co.uk` domain. Combined with TIR registration (which cross-references SRA number and Companies House number), this provides a strong identity binding.
+- **Organisations (did:key):** A provider-managed Organisation's identity is verified by the account provider. Verifiers confirm the `did:key` is listed in the provider's `managedOrganisations` registry (referenced from the TIR `accountProvider` entry).
 - **Transactions:** A transaction DID like `did:web:moverly.com:transactions:abc123` is inherently scoped to the platform hosting it. The platform's TIR registration establishes its authority to host transactions.
 - **Adapters:** An adapter at `did:web:adapters.propdata.org.uk:hmlr` is controlled by whoever operates the `adapters.propdata.org.uk` domain. TIR registration binds this to an authorised adapter operator.
 
@@ -283,7 +286,7 @@ The boundary is clear: **actors get DIDs, subjects get URNs**.
 | No | No | `urn:pdtf:*` |
 
 - **Persons** sign credentials → `did:key`
-- **Organisations** sign credentials and host endpoints → `did:web`
+- **Organisations** sign credentials → `did:key` (provider-managed, common case) or `did:web` (self-hosted, with service endpoints)
 - **Transactions** host endpoints (PDTF API, MCP) → `did:web`
 - **Properties** are credential subjects, never issuers → `urn:pdtf:uprn:*`
 - **Titles** are credential subjects → `urn:pdtf:titleNumber:*`
@@ -332,9 +335,49 @@ For `did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK`:
 
 > **Note:** The `verificationMethod.id` fragment is the full multibase-encoded public key. This is the canonical form per the did:key specification. The same key serves all verification relationships (authentication, assertion, delegation, invocation) because a Person's DID has exactly one key.
 
-### 4.2 Organisation DID Document (did:web)
+### 4.2 Organisation DID Documents
 
-Hosted at the firm's domain. For a conveyancer firm `Smith & Jones LLP` at `did:web:smithandjones.co.uk`, the DID document is served from `https://smithandjones.co.uk/.well-known/did.json`:
+Organisations may use either `did:key` (provider-managed) or `did:web` (self-hosted). When managed by an account provider, an Organisation receives a `did:key` identifier generated by the provider. The provider verifies the organisation's identity (SRA number, Companies House registration, etc.) before issuing the DID. The provider's TIR `accountProvider` entry includes the organisation's DID in its `managedOrganisations` registry, enabling verifiers to trace the `did:key` back to a trusted source. This is expected to be the dominant model — most conveyancer firms and estate agencies will not self-host `did:web` infrastructure.
+
+#### 4.2.1 Organisation DID Document — Provider-Managed (did:key)
+
+For a conveyancer firm `Smith & Jones LLP` managed by LMS, the Organisation receives a `did:key` identifier. Like Person `did:key` documents, the DID document is implicit — deterministically derived from the key with no hosting required:
+
+```json
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/ed25519-2020/v1",
+    "https://w3id.org/security/multikey/v1"
+  ],
+  "id": "did:key:z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm",
+  "verificationMethod": [
+    {
+      "id": "did:key:z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm#z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm",
+      "type": "Ed25519VerificationKey2020",
+      "controller": "did:key:z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm",
+      "publicKeyMultibase": "z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm"
+    }
+  ],
+  "authentication": [
+    "did:key:z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm#z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm"
+  ],
+  "assertionMethod": [
+    "did:key:z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm#z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm"
+  ]
+}
+```
+
+**Key points:**
+
+- No service endpoints — the Organisation's regulatory registrations and contact details live in the entity graph (Organisation entity), not in the DID document.
+- The account provider (e.g. LMS) manages the key material on behalf of the Organisation.
+- Verifiers trace this `did:key` back to a trusted provider via the TIR `accountProvider` entry's `managedOrganisations` registry.
+- The Organisation's identity (SRA number, Companies House registration) is verified by the account provider before the DID is issued.
+
+#### 4.2.2 Organisation DID Document — Self-Hosted (did:web)
+
+For firms that want direct control of their identity, hosted at the firm's domain. For a conveyancer firm `Smith & Jones LLP` at `did:web:smithandjones.co.uk`, the DID document is served from `https://smithandjones.co.uk/.well-known/did.json`:
 
 ```json
 {
@@ -551,6 +594,7 @@ DID documents assign keys to specific verification relationships, which determin
 | Entity type | `authentication` | `assertionMethod` | `capabilityDelegation` | `capabilityInvocation` |
 |-------------|------------------|--------------------|------------------------|------------------------|
 | Person (`did:key`) | ✓ | ✓ | ✓ | ✓ |
+| Organisation (`did:key`) | ✓ | ✓ | ✓ | ✓ |
 | Organisation (`did:web`) | ✓ | ✓ | — | — |
 | Transaction (`did:web`) | ✓ | ✓ | — | — |
 | Trusted Adapter (`did:web`) | ✓ | ✓ | — | — |
@@ -748,6 +792,7 @@ DID documents (especially for Organisations and Adapters) should be cached to av
 | Entity type | Cache TTL | Rationale |
 |-------------|-----------|-----------|
 | Person (`did:key`) | ∞ (no cache needed) | Deterministic — always the same |
+| Organisation (`did:key`) | ∞ (no cache needed) | Deterministic — always the same |
 | Organisation (`did:web`) | 24 hours | Keys rotate infrequently; regulatory metadata is stable |
 | Transaction (`did:web`) | 1 hour | Service endpoints may update; shorter TTL acceptable |
 | Trusted Adapter (`did:web`) | 24 hours | Keys rotate on a scheduled basis; longer TTL is safe |
@@ -787,6 +832,7 @@ However, Trusted Adapter hosts (e.g., `adapters.propdata.org.uk`) **SHOULD** dep
 | Entity type | Creation process |
 |-------------|------------------|
 | Person (`did:key`) | Generate Ed25519 key pair (client-side). Derive DID from public key. No registration needed. |
+| Organisation (`did:key`) | Account provider generates Ed25519 key pair on behalf of the Organisation. Provider verifies the org's identity (SRA number, Companies House, etc.) and adds the DID to its `managedOrganisations` registry. No self-hosting required. |
 | Organisation (`did:web`) | Generate Ed25519 key pair. Create DID document with regulatory metadata. Host at firm's domain. Register in TIR. |
 | Transaction (`did:web`) | Platform generates transaction ID. Creates DID document with service endpoints. Hosts at platform domain. |
 | Trusted Adapter (`did:web`) | Adapter operator generates key pair. Creates DID document with issuance endpoint. Registers in TIR with credential type authorisations. |
@@ -946,7 +992,8 @@ This means that even if an attacker compromises a domain and serves a fraudulent
 | Entity type | Key storage | Minimum requirement |
 |-------------|-------------|---------------------|
 | Person | Device keychain (iOS Keychain, Android Keystore) | Encrypted at rest, biometric-gated access |
-| Organisation | HSM or cloud KMS (AWS KMS, Google Cloud KMS) | FIPS 140-2 Level 2+ |
+| Organisation (`did:key`, provider-managed) | Provider's KMS infrastructure | Provider is responsible for key security |
+| Organisation (`did:web`, self-hosted) | HSM or cloud KMS (AWS KMS, Google Cloud KMS) | FIPS 140-2 Level 2+ |
 | Transaction | Platform KMS | Platform's standard key management |
 | Trusted Adapter | HSM | FIPS 140-2 Level 2+ (adapters are high-value targets) |
 
@@ -973,19 +1020,19 @@ Unregistered land (land not registered at HMLR) has no title number. PDTF needs 
 
 3. **Scope:** Does the identifier cover the title (the legal interest) or the physical extent of unregistered land? Multiple titles can overlap the same land.
 
-### 10.2 D26 — Organisation DID Hosting
+### 10.2 D26 — Organisation DID Methods
 
-**Status:** Decided (self-hosted), but implementation guidance needed
+**Status:** Decided (`did:key` provider-managed as default, `did:web` self-hosted as option)
 
-**Decision:** Organisations host their own DID documents at their domain (`did:web:smithandjones.co.uk`).
+**Decision:** Most organisations will use provider-managed `did:key` identifiers issued by their account provider (e.g. LMS). The account provider verifies the organisation's identity and regulatory status before issuing the DID, and lists it in their `managedOrganisations` registry. Self-hosted `did:web` at the firm's domain is available for firms wanting direct control, but adoption is expected to be gradual.
 
 **Remaining questions:**
 
-1. **Small firms without web infrastructure:** Should the TIR (or a registry operator) offer DID document hosting for firms that can't self-host? This would use a delegated path like `did:web:registry.propdata.org.uk:firms:612345` (keyed by SRA number).
+1. **Self-hosted `did:web` guidance:** For firms that choose `did:web`, should PDTF provide a standard tool/template for generating and hosting DID documents? (Likely yes — see Implementation Notes.)
 
-2. **DID document templates:** Should PDTF provide a standard tool/template for firms to generate and host their DID documents? (Likely yes — see Implementation Notes.)
+2. **Domain verification cadence:** For `did:web` Organisations, how often should the TIR re-verify that a firm's DID document is still hosted and unchanged? (Proposal: daily automated check.)
 
-3. **Domain verification cadence:** How often should the TIR re-verify that a firm's DID document is still hosted and unchanged? (Proposal: daily automated check.)
+3. **Provider migration:** If an Organisation switches account providers, how is the `did:key` transitioned? The new provider would issue a new `did:key` and update its `managedOrganisations` registry. A DID succession credential from the old provider may be needed.
 
 ### 10.3 Multi-Key Entities
 
@@ -1110,7 +1157,8 @@ This generates the key pair, constructs the DID document with regulatory metadat
 | Entity | Identifier Type | Pattern | Example |
 |--------|----------------|---------|---------|
 | Person | `did:key` | `did:key:z6Mk{base58}` | `did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK` |
-| Organisation | `did:web` | `did:web:{domain}` | `did:web:smithandjones.co.uk` |
+| Organisation (provider-managed) | `did:key` | `did:key:z6Mk{base58}` | `did:key:z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm` |
+| Organisation (self-hosted) | `did:web` | `did:web:{domain}` | `did:web:smithandjones.co.uk` |
 | Transaction | `did:web` | `did:web:{platform}:transactions:{id}` | `did:web:moverly.com:transactions:abc123` |
 | Trusted Adapter | `did:web` | `did:web:{host}:{adapter}` | `did:web:adapters.propdata.org.uk:hmlr` |
 | Property | URN | `urn:pdtf:uprn:{uprn}` | `urn:pdtf:uprn:100023456789` |
@@ -1125,9 +1173,9 @@ This generates the key pair, constructs the DID document with regulatory metadat
 
 | ID | Decision | Date | Status |
 |----|----------|------|--------|
-| D7 | `did:key` for Persons, `did:web` for Organisations/Transactions/Adapters | 2026-03-23 | **Decided** |
+| D7 | `did:key` for Persons; `did:key` or `did:web` for Organisations; `did:web` for Transactions/Adapters | 2026-03-23 | **Updated** — Organisations may use provider-managed `did:key` (common case) or self-hosted `did:web` |
 | D23 | `urn:pdtf:unregisteredTitle:{uuid}` for unregistered titles | 2026-03-24 | **Open** — UUID version and first-registration transition TBD |
-| D26 | Organisations use `did:web` hosted at their own domain | 2026-03-24 | **Decided** — implementation guidance for small firms TBD |
+| D26 | Organisations use `did:key` (provider-managed, default) or `did:web` (self-hosted) | 2026-03-24 | **Updated** — `did:key` via account provider is the common path; `did:web` for firms wanting direct control |
 
 ## Appendix C: Related Sub-specs
 
@@ -1138,6 +1186,15 @@ This generates the key pair, constructs the DID document with regulatory metadat
 | [04 — Trusted Issuer Registry](./04-trusted-issuer-registry.md) | TIR registration of `did:web` entities |
 | [12 — Adapter Access Control](./12-adapter-access-control.md) | DID Auth and credential presentation protocols |
 | [07 — State Assembly](./07-state-assembly.md) | How identifiers are used in graph composition |
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.2 | 1 April 2026 | Organisation `did:key` support added throughout: DID document examples, key decisions (D7/D26), entity mapping, creation lifecycle, cache TTLs, key storage. Provider-managed `did:key` as default path. `managedOrganisations` verification via TIR. |
+| v0.1 | 24 March 2026 | Initial draft. `did:key` for Persons, `did:web` for Organisations/Transactions/Adapters, URN scheme (7 types), DID document patterns, cache strategy, key rotation, deactivation, TIR cross-check. |
 
 ---
 

@@ -1,12 +1,12 @@
 ---
 title: "Spec: Verifiable Credentials Data Model"
-description: "How property data maps to W3C Verifiable Credentials — credential format, evidence, terms of use, and signing."
+description: "How property data maps to W3C Verifiable Credentials v2.0 with DataIntegrityProof."
 ---
 
 # PDTF 2.0 — Sub-spec 02: Verifiable Credentials Data Model
 
-**Version:** 0.1 (Draft)
-**Date:** 24 March 2026
+**Version:** 0.3 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
 **Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
@@ -958,7 +958,29 @@ The old credential's `centralHeatingDetails` data is simply no longer included i
 
 If the seller later changes back to `heatingType: "Central heating"`, the old `centralHeatingDetails` data could theoretically re-emerge from the earlier credential. Whether to allow this or require fresh attestation is an implementation decision for the state assembly layer.
 
-### 5.6 Consensus Required
+### 5.6 Design Constraint: Issuers Are Stateless
+
+Issuers assert what they know at the time of issuance. They have no visibility of the current assembled state and no obligation to know what other credentials exist. This means:
+
+- An issuer changing `heatingType` to `None` does not know that a previous credential asserted `centralHeatingDetails`
+- Issuers cannot and should not be expected to explicitly clear dependent paths
+- Pruning of schema-dependent paths (e.g., removing `centralHeatingDetails` when `heatingType` changes to `None`) is necessarily a **state assembly concern**, not an issuance concern
+- The schema's existing `if/then/else` and `oneOf` discriminators define the dependency rules; the assembler applies them
+
+This constraint shapes the merge semantics debate. Section-level REPLACE avoids the pruning question entirely (the issuer replaces the whole subtree). Incremental MERGE requires the assembler to understand schema dependencies and prune accordingly. A hybrid approach — REPLACE for adapter-issued institutional data, MERGE for seller-attested incremental data — may be the pragmatic path, but requires clear rules about which credential types use which strategy.
+
+**Why this matters per credential type:**
+
+- **Adapter-issued credentials** (EPC, title register, searches): Section-level REPLACE works naturally. These issuers are authoritative for the whole subtree and re-issue complete data every time. When the EPC adapter issues a credential, it replaces the entire `energyEfficiency` branch.
+- **Seller-attested credentials** (TA6, TA7, fixtures & fittings): Incremental MERGE is necessary because data arrives piecemeal as the seller fills in forms over time. A seller answering the heating section doesn't re-submit the entire property pack. Finer credential granularity (per-section or per-field) amplifies this need — see Q1.2.
+
+**The consensus questions this raises:**
+
+1. Should pruning happen at all? (vs letting contradictory data coexist with the newer credential winning on the discriminator)
+2. If yes, where are the dependency rules defined? (schema-level `if/then/else` and `oneOf` discriminators are natural candidates — they already exist in the v3 schema)
+3. What is the assembler's obligation? (MUST prune? SHOULD prune? MAY flag but retain?)
+
+### 5.7 Consensus Required
 
 **D5 status: 🟡 Needs consensus**
 
@@ -1098,7 +1120,125 @@ A credential MAY have multiple evidence items. This is common when data has been
 }
 ```
 
-### 6.6 Migration from v1 Evidence
+### 6.6 Source Documents
+
+Evidence often refers to a source file — a title register PDF, an EPC certificate, a survey report, a search result document. The evidence model needs to support referencing these files and controlling access to them.
+
+#### 6.6.1 The sourceDocument Object
+
+Any evidence type MAY include a `sourceDocument` field referencing the underlying file:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `digest` | string | Required | Content hash for integrity verification. Format: `sha256:{hex}` |
+| `mediaType` | string | Required | MIME type (e.g. `application/pdf`, `image/jpeg`) |
+| `size` | integer | Optional | File size in bytes |
+| `name` | string | Optional | Human-readable filename |
+| `url` | string | Required | Retrieval URL — a `pdtf://` URI that resolves via the Transaction DID's document endpoint |
+| `confidentiality` | string | Required | Access level — same values as `termsOfUse` (see §7): `public`, `transactionParticipants`, `roleRestricted`, `partyOnly` |
+| `authorisedRoles` | string[] | Conditional | Required when `confidentiality` is `roleRestricted`. Role identifiers from the same table as `termsOfUse` role restrictions. |
+
+Example — title register PDF referenced from a DocumentExtraction evidence item:
+
+```json
+{
+  "type": "DocumentExtraction",
+  "source": "HMLR Official Copy (Title Register)",
+  "extractedAt": "2026-03-24T10:15:00Z",
+  "method": "PDF extraction — structured data parser",
+  "documentHash": "sha256:a3f2b8c9d1e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+  "documentType": "Title Register",
+  "sourceDocument": {
+    "digest": "sha256:a3f2b8c9d1e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+    "mediaType": "application/pdf",
+    "size": 245760,
+    "name": "Official Copy - Title Register NK123456.pdf",
+    "url": "pdtf://transactions/abc123/documents/doc-tr-nk123456",
+    "confidentiality": "roleRestricted",
+    "authorisedRoles": ["sellerConveyancer", "buyerConveyancer"]
+  }
+}
+```
+
+Note that `documentHash` on the evidence item and `digest` on `sourceDocument` are the same value here — the evidence is *about* the document, and the document is the source. They don't have to match (evidence could reference a different file from the one that was hashed at extraction time), but when they do, it's a strong integrity chain.
+
+Example — survey report with restricted access:
+
+```json
+{
+  "type": "ProfessionalVerification",
+  "source": "did:web:abcsurveys.co.uk",
+  "verifiedAt": "2026-03-25T14:00:00Z",
+  "method": "Level 2 HomeBuyer Report",
+  "professionalRole": "Surveyor",
+  "sourceDocument": {
+    "digest": "sha256:f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8",
+    "mediaType": "application/pdf",
+    "size": 4521984,
+    "name": "HomeBuyer Report - 42 Oak Lane.pdf",
+    "url": "pdtf://transactions/abc123/documents/doc-survey-hb-001",
+    "confidentiality": "partyOnly",
+    "authorisedRoles": []
+  }
+}
+```
+
+A `partyOnly` survey report is accessible only to the party who commissioned it (typically the buyer). They may choose to share it by upgrading confidentiality or adding authorised roles.
+
+#### 6.6.2 Document Retrieval Protocol
+
+The `pdtf://` URL scheme resolves through the Transaction DID document:
+
+1. Parse the `pdtf://` URL to extract the transaction identifier and document path
+2. Resolve the Transaction DID (`did:web:moverly.com:transactions:{txnId}`)
+3. Find the `PdtfDocumentEndpoint` service in the DID document:
+
+```json
+{
+  "service": [{
+    "id": "did:web:moverly.com:transactions:abc123#documents",
+    "type": "PdtfDocumentEndpoint",
+    "serviceEndpoint": "https://moverly.com/api/transactions/abc123/documents"
+  }]
+}
+```
+
+4. Present a Verifiable Presentation containing the requester's participation credential to the service endpoint
+5. The endpoint verifies the VP, checks the requester's role against the document's `confidentiality` and `authorisedRoles`, and returns the file or a 403
+6. The requester verifies the file's content against the `digest` field
+
+```
+GET /api/transactions/abc123/documents/doc-tr-nk123456
+Authorization: Bearer <VP-token>
+
+→ 200 OK
+Content-Type: application/pdf
+PDTF-Digest: sha256:a3f2b8c9d1e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0
+
+<file bytes>
+```
+
+#### 6.6.3 Confidentiality Levels for Documents
+
+Document confidentiality uses the same levels as credential `termsOfUse` (§7), ensuring a single access control model across the framework:
+
+| Level | Who Can Access | Typical Documents |
+|-------|---------------|-------------------|
+| `public` | Anyone with the URL | EPC certificates, flood zone maps |
+| `transactionParticipants` | Any party with a valid participation credential | Title registers, local authority searches |
+| `roleRestricted` | Parties whose role matches `authorisedRoles` | Environmental search reports (conveyancers only), contract drafts |
+| `partyOnly` | The data subject / commissioning party only | Survey reports (buyer), mortgage offers (buyer), identity documents |
+
+Documents follow the same encryption model as credentials when synced between platforms (see Architecture Overview D30). The `confidentiality` level determines the recipient set for per-document encryption keys.
+
+#### 6.6.4 Design Principles
+
+- **Files are referenced, not embedded.** A 50MB survey PDF does not belong inside a VC. The credential carries the provenance metadata and integrity hash; the file lives behind an authenticated endpoint.
+- **One access control model.** Documents use the same confidentiality levels and VP-based authentication as credentials. No parallel auth system.
+- **Digest is the anchor.** The SHA-256 digest binds the evidence claim to a specific file. A verifier can confirm the file hasn't been tampered with regardless of where it was fetched from.
+- **`pdtf://` URIs are portable.** They resolve through DID documents, not hardcoded hostnames. If a transaction migrates between platforms, the URIs still resolve — the new platform updates the Transaction DID's service endpoint.
+
+### 6.7 Migration from v1 Evidence
 
 The current OIDC-derived evidence types map as follows:
 
@@ -2032,6 +2172,16 @@ TransactionCredential
   claims: status, milestones, saleContext, propertyIds, titleIds
   issuer: platform
 ```
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.3 | 1 April 2026 | Added §5.6 "Design Constraint: Issuers Are Stateless" — issuers have no visibility of assembled state, pruning is an assembly concern. Frames REPLACE vs MERGE vs hybrid tradeoff for consensus. |
+| v0.2 | 30 March 2026 | Added §6.6 Source Documents — `sourceDocument` schema, `pdtf://` retrieval protocol via DID service discovery, confidentiality tiers, VP-authenticated fetch. |
+| v0.1 | 24 March 2026 | Initial draft. 7 credential types with JSON examples, evidence model (4 types), termsOfUse filtering, BitstringStatusList, DataIntegrityProof (eddsa-jcs-2022), JSON-LD context, migration from verified claims. |
 
 ---
 

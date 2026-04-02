@@ -5,7 +5,7 @@ import starlight from '@astrojs/starlight';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://property-data-standards-co.github.io',
-	base: '/webv2',
+	base: '/web',
 	integrations: [
 		starlight({
 			title: 'PDTF 2.0 — Property Data Trust Framework',
@@ -83,13 +83,7 @@ export default defineConfig({
 						{
 							label: 'Packages',
 							items: [
-								{ label: '@pdtf/key-manager', slug: 'docs/packages/key-manager' },
-								{ label: '@pdtf/status-list', slug: 'docs/packages/status-list' },
-								{ label: '@pdtf/did-resolver', slug: 'docs/packages/did-resolver' },
-								{ label: '@pdtf/tir-tools', slug: 'docs/packages/tir-tools' },
-								{ label: '@pdtf/did-tools', slug: 'docs/packages/did-tools' },
-								{ label: '@pdtf/vc-validator', slug: 'docs/packages/vc-validator' },
-								{ label: '@pdtf/cli', slug: 'docs/packages/cli' },
+								{ label: '@pdtf/core', slug: 'docs/packages/core' },
 							],
 						},
 					],
@@ -97,15 +91,29 @@ export default defineConfig({
 				{
 					label: 'Specifications',
 					items: [
-						{ label: '00 — Architecture Overview', slug: 'specs/00-architecture-overview' },
-						{ label: '01 — Entity Graph', slug: 'specs/01-entity-graph' },
-						{ label: '02 — VC Data Model', slug: 'specs/02-vc-data-model' },
-						{ label: '03 — DID Methods', slug: 'specs/03-did-methods' },
-						{ label: '04 — Trusted Issuer Registry', slug: 'specs/04-trusted-issuer-registry' },
-						{ label: '06 — Key Management', slug: 'specs/06-key-management' },
-						{ label: '07 — State Assembly', slug: 'specs/07-state-assembly' },
-						{ label: '13 — Reference Implementations', slug: 'specs/13-reference-implementations' },
-						{ label: '14 — Credential Revocation', slug: 'specs/14-credential-revocation' },
+						{
+							label: 'Protocol Specs',
+							items: [
+								{ label: '00 — Architecture Overview', slug: 'specs/00-architecture-overview' },
+								{ label: '01 — Entity Graph', slug: 'specs/01-entity-graph' },
+								{ label: '02 — VC Data Model', slug: 'specs/02-vc-data-model' },
+								{ label: '03 — DID Methods', slug: 'specs/03-did-methods' },
+								{ label: '04 — Trusted Issuer Registry', slug: 'specs/04-trusted-issuer-registry' },
+								{ label: '06 — Key Management', slug: 'specs/06-key-management' },
+								{ label: '07 — State Assembly', slug: 'specs/07-state-assembly' },
+								{ label: '13 — Reference Implementations', slug: 'specs/13-reference-implementations' },
+								{ label: '14 — Credential Revocation', slug: 'specs/14-credential-revocation' },
+							],
+						},
+						{
+							label: 'Implementation Specs',
+							items: [
+								{ label: '03 — DID Infrastructure', slug: 'specs/impl/03-did-infrastructure-impl' },
+								{ label: '04 — TIR Implementation', slug: 'specs/impl/04-tir-impl' },
+								{ label: '06 — Key Management', slug: 'specs/impl/06-key-management-impl' },
+								{ label: '14 — Credential Revocation', slug: 'specs/impl/14-credential-revocation-impl' },
+							],
+						},
 					],
 				},
 				{

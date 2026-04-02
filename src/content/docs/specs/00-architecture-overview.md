@@ -5,8 +5,8 @@ description: "Master reference for the PDTF 2.0 architecture, design decisions, 
 
 # PDTF 2.0 — Architecture Overview
 
-**Version:** 0.1 (Draft)
-**Date:** 23 March 2026
+**Version:** 0.6 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 
 ---
@@ -24,13 +24,14 @@ This document is the master reference for the PDTF 2.0 implementation. It links 
 | Aspect | PDTF v1 (Current) | PDTF 2.0 |
 |--------|-------------------|-----------|
 | **Data model** | Monolithic `pdtf-transaction.json` (~4,000 paths) | Entity graph: Transaction, Property, Title, Person, Organisation, Ownership, Representation, DelegatedConsent, Offer |
-| **Claims** | OpenID Connect verified claims with pathKey:value REPLACE semantics | W3C Verifiable Credentials with sparse objects + dependency pruning |
-| **Identity** | Firebase Auth UIDs, no universal identifiers | DIDs: `did:key` (users), `did:web` (transactions, adapters) |
+| **Claims** | OpenID Connect verified claims with pathKey:value REPLACE semantics | W3C Verifiable Credentials with sparse objects. Merge strategy (REPLACE vs incremental MERGE vs hybrid) pending consensus — see Q1.1 |
+| **Identity** | Firebase Auth UIDs, no universal identifiers | DIDs: `did:key` (persons, managed orgs), `did:web` (self-hosting orgs, transactions, adapters) |
 | **Entity identifiers** | Internal Firestore document IDs | URNs: `urn:pdtf:titleNumber:{value}`, `urn:pdtf:uprn:{value}` |
 | **Verification** | Trust the platform serving the data | Cryptographic proof — verify the signature, not the intermediary |
 | **Provenance** | OIDC-derived evidence schema (deeply nested) | Simpler evidence model reflecting actual usage patterns |
 | **Access control** | Platform-enforced role checks | Per-credential `termsOfUse` (confidentiality + role restrictions) + participation credential presentation |
-| **Interoperability** | REST API, platform-specific | DID documents with service endpoints, MCP-compliant API |
+| **Interoperability** | REST API, platform-specific | Unified MCP + OpenAPI interface, DID documents with service endpoints, AI agent skills |
+| **Data sync** | Platform-to-platform API calls | Encrypted VC replication — GDPR-safe sync with per-recipient envelope encryption *(target architecture; Phase 1 uses platform-level access control)* |
 | **Trust** | Single platform trust | Federated trust via Trusted Issuer Registry |
 
 ---
@@ -45,16 +46,16 @@ This document is the master reference for the PDTF 2.0 implementation. It links 
 | **Property** | `urn:pdtf:uprn:{uprn}` | `v4/Property.json` | Physical property: address, build info, features, energy, environmental, legal questions. All "property pack" data lives here. |
 | **Title** | `urn:pdtf:titleNumber:{number}` | `v4/Title.json` | Legal ownership: title number, extents (geoJSON), register extract, ownership type (freehold/leasehold), leasehold info. |
 | **Person** | `did:key` | `v4/Person.json` | Individual: name, contact, address, verification status. Role-free — role is contextual via Ownership, Representation, or Offer. |
-| **Organisation** | `did:web` | `v4/Organisation.json` | Firm or company: conveyancer firm, estate agency, lender. Distinct from Person — organisations have `did:web` identifiers, not `did:key`. Representation credentials are issued to Organisations. |
-| **Ownership** | URN (generated) | `v4/Ownership.json` | Thin signed assertion linking a Person/Organisation DID to a Title URN with status and verification level. Verified by cross-referencing Title.registerExtract.proprietorship (claim-vs-evidence separation). Revocable credential. |
-| **Representation** | URN (generated) | `v4/Representation.json` | Delegated authority — conveyancer firm, estate agency. Issued by the seller/buyer to an **Organisation** (the firm, not the individual solicitor). Revocable. |
+| **Organisation** | `did:key` or `did:web` | `v4/Organisation.json` | Firm or company: conveyancer firm, estate agency, lender. Uses `did:key` when managed by an account provider (e.g. LMS) or `did:web` when self-hosting identity. |
+| **Ownership** | URN (generated) | `v4/Ownership.json` | Self-asserted claim of legal ownership linking a Person/Organisation DID to a Title URN. Starts as the owner's own assertion; verified against Title.registerExtract.proprietorship (claim-vs-evidence separation). The ownership claim establishes the right to sell. Revocable. |
+| **Representation** | URN (generated) | `v4/Representation.json` | Delegated authority to act on behalf of a seller or buyer. Typically issued to an Organisation (the firm), but supports Person holders too. Revocable. |
 | **DelegatedConsent** | URN (generated) | `v4/DelegatedConsent.json` | Authorised data access for entities like lenders. Part of terms of use for specific authorised entities. |
-| **Offer** | URN (generated) | `v4/Offer.json` (TBD) | Links buyer Person(s) to Transaction. Buyers exist only through Offers, not through Participation. Contains offer details, status, conditions. |
+| **Offer** | URN (generated) | `v4/Offer.json` (TBD) | Links buyer Person(s) or Organisation(s) to Transaction. Buyers participate only through Offers. Contains offer details, status, conditions. |
 | **Mortgage** | URN (generated) | Future | Tied to Offer/buyer. Flagged for growth — not in initial implementation. |
 
 ### 3.2 Entity Relationship Diagram
 
-<!-- ![PDTF 2.0 Entity Relationship Model](diagrams/entity-graph.png) -->
+![PDTF 2.0 Entity Relationship Model](diagrams/entity-graph.png)
 
 ### 3.3 Relationship Model
 
@@ -71,41 +72,46 @@ Transaction (did:web:moverly.com:transactions:*)
     │     └── (may span multiple properties)
     │
     ├── Person[] (did:key:*)
-    │     └── Individual people (sellers, buyers)
-    ├── Organisation[] (did:web:*)
-    │     └── Firms and companies (conveyancer firms, estate agencies, lenders)
+    │     └── Individual people
+    ├── Organisation[] (did:key:* or did:web:*)
+    │     └── Firms and companies
     │
-    ├── Ownership[] ──→ Person (did:key:*)
-    │     └── Thin assertion: links Person DID to Title URN
-    │         with status + verification level
-    │         (verified against Title.registerExtract.proprietorship)
+    ├── Ownership[] ──→ Person/Organisation ──→ Title
+    │     └── Self-asserted claim of legal ownership, linking
+    │         a Person/Organisation DID to a Title URN.
+    │         Verified against Title.registerExtract.proprietorship.
+    │         The ownership claim is what gives the holder the
+    │         right to sell — the Transaction's Titles are "for sale"
+    │         because someone with an Ownership credential says so.
     │
-    ├── Representation[] ──→ Organisation (did:web:*)
-    │     ├── role: "sellerConveyancer" (issued by seller)
-    │     ├── role: "estateAgent" (issued by seller)
+    ├── Representation[] ──→ Person/Organisation
+    │     ├── role: "sellerConveyancer" (issued by seller/owner)
+    │     ├── role: "estateAgent" (issued by seller/owner)
     │     └── role: "buyerConveyancer" (issued by buyer)
-    │     (issued to the firm, not the individual solicitor)
+    │     (typically issued to firms, but the credential model
+    │      supports both Person and Organisation holders)
     │
     ├── DelegatedConsent[] ──→ Person/Organisation
     │     └── Authorised entities (e.g. lenders) with specific
     │         data access rights under terms of use
     │
-    └── Offer[] ──→ Person (did:key:*)
+    └── Offer[] ──→ Person/Organisation
           ├── role: "buyer" (implicit)
           ├── status, amount, conditions
           └── Mortgage (future)
 ```
 
-**Participation decomposed:** The old "Participation" entity is replaced by three precise relationship types, plus Organisation as a new first-class entity:
-- **Ownership** — thin signed assertion linking a Person/Organisation DID to a Title URN. Contains status and verification level but not the evidence itself — that lives in Title.registerExtract.proprietorship (claim-vs-evidence separation).
-- **Representation** — delegated authority from seller/buyer to act on their behalf. Issued to an **Organisation** (the conveyancer firm, not the individual solicitor), because the professional duty and insurance liability sits with the firm. These credentials are *issued by* the seller or buyer.
+**Participation decomposed:** The old "Participation" entity is replaced by three precise relationship types:
+- **Ownership** — self-asserted claim of legal ownership, linking a Person or Organisation DID to a Title URN. The owner starts by asserting their own ownership; the platform then seeks to verify this against Title.registerExtract.proprietorship (claim-vs-evidence separation). The ownership claim is what establishes the right to sell: a Transaction's referenced Titles are "for sale" because the legal owner — who holds the Ownership credential — is offering them for sale.
+- **Representation** — delegated authority to act on someone's behalf. Typically issued to an Organisation (the conveyancer firm, not the individual solicitor), because the professional duty and insurance liability sits with the firm. But the credential model supports both Person and Organisation holders — companies can also represent other companies.
 - **DelegatedConsent** — authorised access for entities like lenders, as part of terms of use. General consent mechanism for entities that aren't direct participants but have legitimate data access needs.
-- **Organisation** — new first-class entity for firms and companies. Uses `did:web` identifiers (not `did:key` like Person). The distinction matters: a conveyancer firm has a Companies House identity, SRA registration, and PI insurance — none of which belong on a Person entity.
+
+**Person vs Organisation:** Both can own, sell, buy, represent, and consent. The difference is structural, not role-based: an Organisation has a Companies House identity, SRA registration, and PI insurance — attributes that don't belong on a Person entity. Both get relationship credentials; both can be on either side of a transaction.
 
 ### 3.3 Key Design Decisions
 
-- **Buyers participate only through Offers** — no Participation entity for buyers. This models the real-world relationship: a buyer doesn't "participate" in the seller's transaction until they make an offer, and multiple offers can exist simultaneously.
-- **Seller vs Representative distinction** — TBD. May split into separate Seller and Representative (for conveyancers, estate agents) relationship entities. Needs consensus from Rick at LMS and others.
+- **Buyers participate only through Offers** — no Participation entity for buyers. This models the real-world relationship: a buyer doesn't "participate" in the seller's transaction until they make an offer, and multiple offers can exist simultaneously. Buyers can be Persons or Organisations (companies buy property too).
+- **Ownership establishes the right to sell** — the legal owner self-asserts ownership by issuing an Ownership credential linking their DID to a Title URN. This is what puts a title "for sale" in a transaction. The platform then verifies the claim against the proprietorship register. No separate "listing" entity is needed — the Ownership credential IS the assertion of the right to dispose of the title.
 - **ID-keyed collections** — v4 moves from arrays (participants[], searches[]) to ID-keyed maps (like current offers). Breaking change to schema structure but not to the underlying data — path handling code updates required.
 - **Property-level VCs** — EPC, flood risk, searches etc. are Property VCs with paths like `/energyEfficiency/certificate`, not first-class entity VCs. Primary issuers will use the same paths when they adopt the standard.
 
@@ -116,7 +122,7 @@ The governing question for field assignment: **"Does this fact travel with the p
 - **Property** = enduring facts (the "logbook"): EPC, flood risk, build info, legal questions, fixtures & fittings, environmental data. If a new buyer inherits it, it's a Property fact.
 - **Title** = legal title facts: title number, extents (geoJSON), register extract (including proprietorship as evidence), ownership type (freehold/leasehold), leasehold terms and restrictions, isFirstRegistration, mortgage/charge information. The existing branch 263 work already merges `ownershipsToBeTransferred` into the Title entity.
 - **Transaction** = this-sale facts: numberOfSellers, numberOfNonUkResidentSellers, outstandingMortgage, existingLender, hasHelpToBuyEquityLoan, isLimitedCompanySale. None of these pass the logbook test — they describe this specific transaction, not the property itself.
-- **Ownership** = thin relationship credential: a signed assertion linking a Person or Organisation DID to a Title URN, with status and verification level. The evidence for ownership (proprietorship register) lives on the Title entity — Ownership is the claim, Title holds the evidence.
+- **Ownership** = self-asserted claim of legal ownership linking a Person or Organisation DID to a Title URN, with status and verification level. The owner starts by asserting this themselves — their ownership claim is what establishes the right to sell. The evidence (proprietorship register) lives on the Title entity — Ownership is the claim, Title holds the evidence.
 
 ### 3.5 Existing Work
 
@@ -230,12 +236,12 @@ State assembly uses MERGE semantics. A **dependency pruning pass** then strips `
 
 ### 5.1 DID Methods
 
-| Entity | DID Method | Example | Resolution |
-|--------|-----------|---------|------------|
-| Persons | `did:key` | `did:key:z6Mkh...abc` | Self-resolving from public key, no hosting needed |
-| Organisations | `did:web` | `did:web:smithandjones.co.uk` | Hosted DID document at firm's domain |
-| Transactions | `did:web` | `did:web:moverly.com:transactions:abc123` | Hosted DID document at `https://moverly.com/transactions/abc123/did.json` |
-| Trusted Adapters | `did:web` | `did:web:adapters.propdata.org.uk:hmlr` | Hosted DID document with service endpoints for VC requests |
+| Entity             | DID Method           | Example                                           | Resolution                                                                                     |
+|--------------------|----------------------|---------------------------------------------------|------------------------------------------------------------------------------------------------|
+| Persons            | `did:key`            | `did:key:z6Mkh...abc`                             | Self-resolving from public key, no hosting needed                                              |
+| Organisations      | `did:key` or `did:web` | `did:key:z6Mkf...xyz` or `did:web:smithandjones.co.uk` | `did:key` when managed by account provider (e.g. LMS); `did:web` when self-hosting identity |
+| Transactions       | `did:web`            | `did:web:moverly.com:transactions:abc123`         | Hosted DID document at `https://moverly.com/transactions/abc123/did.json`                      |
+| Trusted Adapters   | `did:web`            | `did:web:adapters.propdata.org.uk:hmlr`           | Hosted DID document with service endpoints for VC requests                                     |
 
 ### 5.2 URN Scheme
 
@@ -627,11 +633,186 @@ Comprehensive guide covering:
 
 ---
 
-## 12. API Design
+## 12. API Design & Access Model
 
-Consider MCP-compliant design (we already have MCP server in !3117). The transaction DID document's service endpoint could point to an MCP server, making every transaction a discoverable, agent-accessible resource.
+### 12.1 Unified API: MCP + OpenAPI
 
-*(Full spec: `papers/pdtf-v2/11-api-design.md` — TBD)*
+The core PDTF API is **MCP-compliant** (Model Context Protocol). Every transaction is a discoverable, agent-accessible resource via the transaction DID document's service endpoints. The same underlying operations are exposed through both:
+
+- **MCP binding** — tools, resources, and prompts for AI agents. An agent can authenticate, browse transactions, fetch and verify credentials, compose state, and run diligence queries through MCP tool calls.
+- **OpenAPI binding** — conventional REST endpoints with typed schemas for traditional integrators building web applications, mobile apps, and backend services.
+
+Both bindings share the same service layer, authentication model, and credential access rules. The MCP binding is not a wrapper around the REST API — they are peer interfaces to the same operations.
+
+**Core operations (both bindings):**
+
+| Operation | Description |
+|-----------|-------------|
+| `resolveTransaction(did)` | Resolve a transaction DID → DID document, service endpoints, metadata |
+| `fetchCredentials(identifier, options)` | Fetch VCs by entity identifier (UPRN, title number, transaction DID) with optional type/path filtering |
+| `composeState(transactionDid, options)` | Traverse the full entity graph from a transaction DID, collect all VCs, compose state with dependency pruning. Options: v3/v4 format, include provenance |
+| `verifyCredential(vc)` | Verify a single VC: signature check, TIR lookup, revocation status |
+| `issueCredential(type, subject, data)` | Issue a new VC (adapter/platform only) |
+| `revokeCredential(id)` | Revoke a VC by flipping its status bit (issuer only) |
+| `listParticipants(transactionDid)` | List ownership, representation, and consent credentials for a transaction |
+| `submitOffer(transactionDid, offer)` | Submit a buyer offer |
+
+**AI agent skill layer:** PDTF publishes agent skills (tool definitions + usage documentation) that allow AI agents to:
+- Build interface code against the API (code generation from the skill)
+- Directly operate on transactions (fetch VCs, compose state, run diligence) via MCP tool calls
+- Authenticate and prove participation without manual credential management
+
+### 12.2 Authentication & DID Ownership Proof
+
+Access to transaction data requires proof that the requester is a participant (holds an Ownership, Representation, DelegatedConsent, or Offer credential). The authentication model has two phases matching the key management evolution (D14):
+
+#### Phase 1: Account Provider Delegation (Custodial)
+
+In Phase 1, the account provider (LMS, Moverly) holds the user's private key in KMS. Authentication works via OAuth:
+
+1. **Agent/client authenticates** via standard OAuth 2.0 flow with the account provider
+2. **Account provider verifies** the user's identity and maps to their `did:key`
+3. **Account provider signs a Verifiable Presentation (VP)** on behalf of the user using their KMS-held key — the VP contains the user's participation credential(s)
+4. **PDTF service verifies** the VP signature against the user's DID document, confirms participation credential validity, and grants access
+
+The OAuth flow *is* the challenge-response — the account provider's token endpoint is the signing oracle. The user never touches their private key. The VP is short-lived (minutes) and scoped to the specific transaction being accessed.
+
+```
+Agent → OAuth → Account Provider → KMS Sign VP → Agent → VP → PDTF Service → Verify → Access
+```
+
+#### Phase 2: Direct DID Auth (Wallet)
+
+When users hold their own keys (wallet binding), standard DID Auth challenge-response:
+
+1. **Agent requests access** to a transaction
+2. **PDTF service issues challenge** — a nonce signed by the service
+3. **Agent signs the challenge** with their `did:key` private key
+4. **PDTF service verifies** the signature against the DID document and checks participation credentials
+
+In both phases, the participation credential (stored locally by the agent/wallet) is presented as part of the authentication flow. The credential itself is the authorization — no separate role-check needed.
+
+### 12.3 Platform-to-Platform Sync & VC Encryption
+
+> **Phase 1 note:** Envelope encryption is the target architecture for multi-platform sync. In Phase 1, where Moverly is the sole platform, VC encryption is not implemented — data access is controlled through platform-level authentication and `termsOfUse` filtering. The encryption model described here will be specified in detail in Sub-spec 12 when multi-platform sync is introduced.
+
+Platforms (LMS systems, conveyancer software, orchestrators) need to sync VC collections to ensure all participants have the latest data. The challenge: GDPR exposure. A platform shouldn't hold decryptable personal data for transactions it's not a participant in.
+
+**Solution: Envelope encryption on credential content.**
+
+#### Encryption Model
+
+PDTF uses **ECDH-ES+A256KW** (Elliptic Curve Diffie-Hellman Ephemeral Static + AES-256 Key Wrap) with **X25519** key agreement, complementing the Ed25519 signing keys already in the architecture:
+
+1. **Every DID document includes a `keyAgreement` verification method** — an X25519 public key derived from (or alongside) the Ed25519 signing key
+2. **Credential content is encrypted** with a random AES-256-GCM content encryption key (CEK)
+3. **The CEK is wrapped (encrypted) per-recipient** — one wrapped key per participant DID that has access rights (based on `termsOfUse` role restrictions)
+4. **The encrypted VC is a JWE (JSON Web Encryption)** envelope containing: encrypted payload + per-recipient wrapped keys + metadata
+
+```json
+{
+  "protected": { "alg": "ECDH-ES+A256KW", "enc": "A256GCM" },
+  "recipients": [
+    { "header": { "kid": "did:key:z6Mk...#key-agreement" }, "encrypted_key": "..." },
+    { "header": { "kid": "did:web:smithandjones.co.uk#key-agreement" }, "encrypted_key": "..." },
+    { "header": { "kid": "did:web:moverly.com#key-agreement" }, "encrypted_key": "..." }
+  ],
+  "iv": "...",
+  "ciphertext": "...",
+  "tag": "..."
+}
+```
+
+#### Sync Model
+
+With envelope encryption, platforms can sync freely:
+
+- **Replicate all encrypted VCs** for a transaction — they're opaque blobs to non-participants
+- **Only participants with a wrapped key can decrypt** — decryption requires the X25519 private key matching one of the `recipients`
+- **A platform that can't decrypt is not a data controller** for that content under GDPR
+- **Revocation status is still public** (Bitstring Status Lists are unsigned data) — platforms can check revocation without decrypting content
+- **VC signatures remain valid inside the encryption envelope** — decrypt first, then verify the inner VC proof
+
+#### Recipient Management
+
+When a new participant joins a transaction (e.g. buyer's conveyancer appointed):
+
+1. New Representation credential is issued
+2. Existing encrypted VCs are **re-wrapped** — the CEK for each VC is wrapped with the new participant's X25519 public key and added to the `recipients` array
+3. No re-encryption of the content needed — only the key wrapping changes
+
+When a participant is removed or a credential is revoked:
+
+1. The revoked participant's wrapped key entry is removed
+2. Optionally, re-key: generate new CEK, re-encrypt content, wrap for remaining participants (provides forward secrecy)
+
+#### Confidentiality Tiers
+
+Not all VCs need encryption. The encryption model follows the existing `termsOfUse` confidentiality levels:
+
+| Confidentiality | Encryption | Rationale |
+|----------------|------------|-----------|
+| `public` | None — plaintext VC | Public register data, EPC ratings |
+| `transactionParticipants` | Encrypted, all participant DIDs as recipients | Most property data |
+| `roleRestricted` | Encrypted, only matching-role DIDs as recipients | Financial data, personal details |
+| `partyOnly` | Encrypted, only the data subject's DID as recipient | Identity verification details |
+
+### 12.4 Key Agreement Key Derivation
+
+X25519 key agreement keys are derived alongside Ed25519 signing keys:
+
+- **`did:key` (Persons, managed Organisations):** The Ed25519 private key is converted to an X25519 private key using the birational map (RFC 7748 §6.1). The `did:key` document implicitly includes both verification and key agreement methods.
+- **`did:web` (self-hosting Organisations, Transactions):** The DID document explicitly lists both an `Ed25519VerificationKey2020` (for signing) and an `X25519KeyAgreementKey2020` (for encryption) in `verificationMethod`, with the latter referenced from `keyAgreement`.
+
+*(Full spec: `papers/pdtf-v2/11-api-design.md` — TODO, `papers/pdtf-v2/12-adapter-access-control.md` — TODO)*
+
+### 12.5 Environment Separation
+
+PDTF 2.0 uses `did:web` domains as the structural trust boundary between environments. A credential signed in staging is cryptographically untrusted in production because the issuer DID resolves to a different domain — no configuration flags or environment variables control this; it is an intrinsic property of the identifier.
+
+#### Three-tier model
+
+| Tier | Identity Model | Key Storage | TIR Source | DID Document Hosting |
+|------|---------------|-------------|------------|---------------------|
+| **Local dev** | `did:key` only | In-memory | Local JSON file | None (no did:web resolution needed) |
+| **Staging** | `did:web:*.staging.propdata.org.uk` | Firestore | `staging` branch of `pdtf-tir` | GCS staging bucket |
+| **Production** | `did:web:*.propdata.org.uk` | Cloud KMS (HSM-backed) | `main` branch of `pdtf-tir` | GCS prod bucket + CDN |
+
+#### Domain conventions
+
+```
+Production:    did:web:adapters.propdata.org.uk:{adapter}
+Staging:       did:web:adapters.staging.propdata.org.uk:{adapter}
+
+Production:    did:web:transactions.propdata.org.uk:txn:{id}
+Staging:       did:web:transactions.staging.propdata.org.uk:txn:{id}
+
+Production:    did:web:auth.moverly.com
+Staging:       did:web:auth.staging.moverly.com
+```
+
+#### What differs per environment
+
+- **Adapter DIDs** — different domain, different key pairs, different DID documents
+- **Transaction DIDs** — different domain prefix, separate GCS bucket / CDN
+- **Account provider DID** — different auth domain
+- **TIR registry** — separate branch (staging includes test issuers not present in production)
+- **Status lists** — separate hosting domain (`status.staging.propdata.org.uk`)
+- **Key material** — staging uses Firestore for convenience; production uses Cloud KMS with audit logging
+
+#### What stays the same
+
+- **Application code** — `@pdtf/core`, adapters, CLI tooling are environment-agnostic. The environment is determined entirely by configuration: which domain, which `KeyProvider` implementation, which TIR URL.
+- **Schemas** — entity graph structure, VC data model, and JSON Schema definitions are identical across all tiers.
+- **Root issuer entries** — aspirational entries for Environment Agency, HMLR etc. appear in both branches (they are placeholders until those organisations host their own DIDs).
+
+#### Cross-contamination protection
+
+Because `did:web` encodes the domain into the identifier itself, a staging credential presented to a production verifier will fail TIR lookup — the issuer DID simply does not exist in the production registry. This is not a policy check; it is a structural impossibility. No "wrong environment" bug can cause staging data to be trusted in production unless someone manually copies keys and registry entries between environments, which CI validation on the TIR repo is designed to prevent.
+
+#### Local development
+
+For local development and unit testing, `did:key` eliminates all infrastructure dependencies. The `MemoryKeyProvider` generates ephemeral keys, the `VcValidator` resolves `did:key` DIDs locally without network access, and a local `registry.json` file serves as the TIR. This means a developer can sign, verify, and compose credentials on a laptop with zero cloud access.
 
 ---
 
@@ -645,13 +826,13 @@ Consider MCP-compliant design (we already have MCP server in !3117). The transac
 | 03 | `03-did-methods.md` | DRAFTED | did:key, did:web, URN schemes, DID document structure |
 | 04 | `04-trusted-issuer-registry.md` | DRAFTED | GitHub-based TIR, entry schema, validation, caching |
 | 05 | `05-hosted-adapter-services.md` | TODO | Adapter architecture, issuance flow, deployment |
-| 06 | `06-key-management.md` | DRAFTED | Google Cloud KMS, key hierarchy, rotation, wallet binding |
+| 06 | `06-key-management.md` | DRAFTED | Google Cloud KMS, key hierarchy, rotation, wallet binding. X25519 encryption key management deferred to Sub-spec 12. |
 | 07 | `07-state-assembly.md` | DRAFTED | composeV3/V4StateFromGraph, dependency pruning, migration |
 | 08 | `08-diligence-engine-migration.md` | TODO | entity:path mapping, pdtfPaths.js evolution |
 | 09 | `09-nptn-integration.md` | TODO | VC flow through NPTN, LMS migration guide |
 | 10 | `10-lms-documentation.md` | TODO | Architecture guide for LMS stakeholders |
-| 11 | `11-api-design.md` | TODO | MCP-compliant transaction API, DID document service endpoints |
-| 12 | `12-adapter-access-control.md` | TODO | Participation credential presentation, DID proof, role filtering |
+| 11 | `11-api-design.md` | TODO | Unified MCP + OpenAPI interface, VC fetch/compose/verify operations, AI agent skills |
+| 12 | `12-access-control-and-encryption.md` | TODO | DID Auth (OAuth delegation + direct), VP presentation, VC envelope encryption *(Phase 2+)*, platform sync |
 | 13 | `13-reference-implementations.md` | DRAFTED | VC validator, graph composer, DID resolver specs |
 | 14 | `14-credential-revocation.md` | DRAFTED | Bitstring Status List hosting, revocation flows, cache strategy |
 
@@ -659,36 +840,53 @@ Consider MCP-compliant design (we already have MCP server in !3117). The transac
 
 ## 14. Decisions Log
 
-| # | Decision | Date | Status |
-|---|----------|------|--------|
-| D1 | Entity model: Transaction, Property, Title, Person, Organisation, Ownership, Representation, DelegatedConsent, Offer. Mortgage flagged for future. | 2026-03-23 | ✅ Confirmed |
-| D2 | Buyers participate only through Offers, not Participation | 2026-03-23 | ✅ Confirmed |
-| D3 | Representation credentials issued to Organisations (firms), not Persons (individual solicitors). The professional duty and insurance liability sits with the firm. | 2026-03-24 | ✅ Confirmed |
-| D4 | Property-level VCs (not first-class entity VCs for EPC etc.) | 2026-03-23 | ✅ Confirmed |
-| D5 | Sparse objects + dependency pruning (not pathKey:value REPLACE) | 2026-03-23 | 🟡 Needs consensus |
-| D6 | Simpler evidence model than current OIDC-derived schema | 2026-03-23 | ✅ Confirmed |
-| D7 | did:key for users, did:web for transactions and adapters | 2026-03-23 | ✅ Confirmed |
-| D8 | GitHub-based TIR at property-data-standards-co | 2026-03-23 | ✅ Confirmed |
-| D9 | Separate domain for hosted adapters, open-source viable (keys in KMS, not code) | 2026-03-23 | ✅ Confirmed |
-| D10 | Dual state assembly: composeV3StateFromGraph + composeV4StateFromGraph | 2026-03-23 | ✅ Confirmed |
-| D11 | DE paths: `property:heating/...` style (entity prefix, not URN in path) | 2026-03-23 | ✅ Confirmed |
-| D12 | Consider MCP-compliant API design | 2026-03-23 | 🟡 Open |
-| D13 | Access control: participation credential + DID proof for restricted VCs | 2026-03-23 | ✅ Confirmed |
-| D14 | Digital ID wallet binding at onboarding (future, custodial for now) | 2026-03-23 | ✅ Confirmed |
-| D15 | ID-keyed collections in v4 (breaking change from arrays) | 2026-03-23 | ✅ Confirmed |
-| D16 | Ed25519 key algorithm | 2026-03-23 | ✅ Confirmed |
-| D17 | Agent: Atlas 🗺️ — dedicated agent for PDTF 2.0 work | 2026-03-23 | ✅ Confirmed |
-| D18 | Credential revocation via W3C Bitstring Status List — all issuers must support | 2026-03-23 | ✅ Confirmed |
-| D19 | Participation renamed → Ownership, Representation, DelegatedConsent | 2026-03-23 | ✅ Confirmed |
-| D20 | TIR describes entity:path combos (e.g. "Property:/energyEfficiency/certificate") | 2026-03-23 | ✅ Confirmed |
-| D21 | User DID issuers (account providers) must also be in TIR | 2026-03-23 | ✅ Confirmed |
-| D22 | Relationship model is Transaction-centric (not Property→Title→Transaction) | 2026-03-23 | ✅ Confirmed |
-| D23 | Unregistered titles need identifier method (urn:pdtf:unregisteredTitle:*) | 2026-03-23 | 🟡 Needs design |
-| D24 | 3-phase evolution: Moverly proxies → separately hosted adapters (JV?) → root issuers | 2026-03-23 | ✅ Confirmed |
-| D25 | Adapters safe to open-source — key material in Cloud KMS, not in code | 2026-03-23 | ✅ Confirmed |
-| D26 | Organisation as first-class entity with did:web identifiers (firms ≠ persons) | 2026-03-24 | ✅ Confirmed |
-| D27 | Logbook test governs field assignment: Property=enduring facts, Title=legal title facts, Transaction=this-sale facts, Ownership=thin relationship credential | 2026-03-24 | ✅ Confirmed |
-| D28 | Ownership credential is thin (DID→Title URN + status/verification). Evidence lives on Title.registerExtract.proprietorship (claim-vs-evidence separation). | 2026-03-24 | ✅ Confirmed |
+All architectural decisions made through v0.3 of this document are baked into the spec text above. The decision log below tracks only **open questions requiring industry consensus** — the 17 items identified for the consensus session, grouped by theme.
+
+### Theme 1: Claims Merge Semantics
+
+| # | Question | Spec Ref | Decision | Date |
+|---|----------|----------|----------|------|
+| Q1.1 | Claims merge strategy: section-level REPLACE (natural for adapter data), incremental MERGE (necessary for seller attestations), or a hybrid per credential type? If MERGE, should the assembler prune schema-dependent paths when discriminators change? Issuers are stateless and cannot be responsible for pruning. | 02 §5, 07 §4 | | |
+| Q1.2 | Credential granularity for seller attestations: per-form, per-section, or per-field? Directly affects Q1.1 — finer granularity requires MERGE semantics. | 02 §3 | | |
+| Q1.3 | Multi-credential merge conflicts: latest timestamp, trust level priority, or explicit conflict resolution | 02 §13.2 | | |
+
+### Theme 2: Entity Model & Credential Boundaries
+
+| # | Question | Spec Ref | Decision | Date |
+|---|----------|----------|----------|------|
+| Q2.1 | Multi-property transactions: how do overlays, form mappings, and v3 `propertyPack` (singular) handle multiple properties? | 01 §9.1, 07 §12.1 | | |
+| Q2.2 | Should trust-level conflicts between credentials be visible to transaction participants? | 07 §12.1 | | |
+
+### Theme 3: Identifier Design
+
+| # | Question | Spec Ref | Decision | Date |
+|---|----------|----------|----------|------|
+| Q3.1 | Search result identifiers: composite key, synthetic UUID, or provider-scoped URN? | 01 §9.1 | | |
+| Q3.2 | Unregistered title identifiers: UUID v4 vs v5 (deterministic from UPRN), and first-registration transition mechanism | 03 §10.1 | | |
+| Q3.3 | Should every credential have an `id` field? Deduplication vs privacy (correlation vectors) | 02 §13.1 | | |
+
+### Theme 4: Organisation Identity
+
+| # | Question | Spec Ref | Decision | Date |
+|---|----------|----------|----------|------|
+| Q4.1 | Organisation DID hosting for small firms: registry-hosted delegation, mandatory self-hosting with tooling, or both? | 03 §10.2 | | |
+| Q4.2 | Organisation discovery: domain-based identity, SRA/Companies House numbers, or discovery registry? | 01 §9.1 | | |
+
+### Theme 5: Trust Infrastructure Governance
+
+| # | Question | Spec Ref | Decision | Date |
+|---|----------|----------|----------|------|
+| Q5.1 | TIR governance: who reviews/approves entries in Phase 2+? Should the TIR itself be signed (JWS)? | 04 §13 | | |
+| Q5.2 | Multiple issuers for the same data path — allowed or exclusive? | 04 §13 | | |
+| Q5.3 | Test/staging TIR: separate registry or `test` status flag in the main registry? | 04 §13 | Separate branches in same repo (`main` = prod, `staging` = staging). See §12.5. | Apr 2026 |
+
+### Theme 6: Migration & Backward Compatibility
+
+| # | Question | Spec Ref | Decision | Date |
+|---|----------|----------|----------|------|
+| Q6.1 | Participant migration strategy for live transactions (role strings → Organisation + Representation credential) | 01 §9.1 | | |
+| Q6.2 | Buyer Person/Organisation creation timing: on offer submission, on acceptance, or when? Minimum data required? | 01 §9.1 | | |
+| Q6.3 | v3 backward compatibility contract: must array ordering match current v3-from-claims composer, or is semantically equivalent acceptable? | 07 §12.1 | | |
 
 ---
 
@@ -707,6 +905,19 @@ Consider MCP-compliant design (we already have MCP server in !3117). The transac
 11. **NPTN integration** (09) — VC flow design for LMS
 12. **API design** (11) — MCP-compliant endpoints
 13. **LMS documentation** (10) — stakeholder guide
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.6 | 2 April 2026 | §12.5 Environment Separation added — three-tier model (local dev/staging/prod), domain conventions, cross-contamination protection. Q5.3 resolved. |
+| v0.5 | 1 April 2026 | Encryption deferred to Phase 2+ (§12.3 Phase 1 note). Organisation `did:key` support formalised alongside `did:web`. Status list signing aligned to issuer key. Merge semantics (Q1.1) reframed: issuers are stateless, pruning is an assembly concern. Q1.2 updated to connect credential granularity to merge strategy. |
+| v0.4 | 29 March 2026 | Person/Organisation symmetry — all relationship credentials support both. Ownership reframed as self-asserted right to sell. Decision log restructured: D1–D32 baked into spec text, log now tracks only 17 consensus questions (Q1.1–Q6.3). Entity relationship diagram rebuilt with Organisation as first-class entity. |
+| v0.3 | 29 March 2026 | §12 API Design expanded: MCP + OpenAPI dual binding, agent DID authentication, VC envelope encryption model (ECDH-ES+A256KW), platform sync architecture. Decisions D29–D32 added. Organisation `did:key` option introduced (D7/D26 updated). PDF table formatting improved. |
+| v0.2 | 24 March 2026 | Organisation added as first-class entity. Representation targets Organisations not Persons. Logbook test (§3.4) for field assignment. Ownership as thin credential with claim-vs-evidence separation. Decisions D26–D28 added, D3 resolved. Sub-spec 01 marked DRAFTED. |
+| v0.1 | 23 March 2026 | Initial draft. Entity graph, trust evolution (3-phase), TIR concept, 25 architectural decisions (D1–D25). |
 
 ---
 

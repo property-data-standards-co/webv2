@@ -1,0 +1,138 @@
+direction: down
+
+# Styling
+*.style.border-radius: 8
+*.style.font-size: 16
+
+# Core entities (blue)
+transaction: "Transaction\ndid:web:moverly.com:txn:*" {
+  style.fill: "#1a5276"
+  style.font-color: "#ffffff"
+}
+
+property: "Property\nurn:pdtf:uprn:{uprn}" {
+  style.fill: "#2e86c1"
+  style.font-color: "#ffffff"
+}
+
+title: "Title\nurn:pdtf:titleNumber:{n}" {
+  style.fill: "#2e86c1"
+  style.font-color: "#ffffff"
+}
+
+# Identity (green) — Person and Organisation
+person: "Person\ndid:key:*" {
+  style.fill: "#1a8a5c"
+  style.font-color: "#ffffff"
+}
+
+organisation: "Organisation\ndid:key:* or did:web:*" {
+  style.fill: "#148f77"
+  style.font-color: "#ffffff"
+}
+
+# Offer (purple)
+offer: "Offer\nurn:pdtf:offer:{id}" {
+  style.fill: "#7d3c98"
+  style.font-color: "#ffffff"
+}
+
+# Relationship credentials (gold, rounded)
+ownership: "Ownership\nself-asserted → verified" {
+  style.fill: "#f1c40f"
+  style.font-color: "#1a1a1a"
+  style.border-radius: 16
+}
+
+representation: "Representation\nconveyancer / estate agent" {
+  style.fill: "#f1c40f"
+  style.font-color: "#1a1a1a"
+  style.border-radius: 16
+}
+
+consent: "DelegatedConsent\nlender / authorised entity" {
+  style.fill: "#f1c40f"
+  style.font-color: "#1a1a1a"
+  style.border-radius: 16
+}
+
+# Transaction → core entities
+transaction -> property: "references []" {
+  style.stroke: "#2e86c1"
+  style.stroke-width: 2
+}
+transaction -> title: "references []" {
+  style.stroke: "#2e86c1"
+  style.stroke-width: 2
+}
+
+# Transaction → relationship credentials
+transaction -> ownership: "links []" {
+  style.stroke: "#d4ac0d"
+  style.stroke-width: 2
+}
+transaction -> representation: "links []" {
+  style.stroke: "#d4ac0d"
+  style.stroke-width: 2
+}
+transaction -> consent: "links []" {
+  style.stroke: "#d4ac0d"
+  style.stroke-width: 2
+}
+
+# Transaction → offer
+transaction -> offer: "contains []" {
+  style.stroke: "#7d3c98"
+  style.stroke-width: 2
+}
+
+# Ownership links Person/Org to Title (the right to sell)
+ownership -> person: "owner (Person)" {
+  style.stroke: "#1a8a5c"
+  style.stroke-width: 2
+}
+ownership -> organisation: "owner (Org)" {
+  style.stroke: "#148f77"
+  style.stroke-width: 2
+}
+ownership -> title: "asserts ownership of" {
+  style.stroke: "#2e86c1"
+  style.stroke-width: 2
+}
+
+# Representation → Person or Organisation
+representation -> person: "holder (Person)" {
+  style.stroke: "#1a8a5c"
+  style.stroke-width: 2
+}
+representation -> organisation: "holder (Org)" {
+  style.stroke: "#148f77"
+  style.stroke-width: 2
+}
+
+# Consent → Person or Organisation
+consent -> person: "authorises (Person)" {
+  style.stroke: "#1a8a5c"
+  style.stroke-width: 2
+}
+consent -> organisation: "authorises (Org)" {
+  style.stroke: "#148f77"
+  style.stroke-width: 2
+}
+
+# Offer → Person or Organisation (buyer)
+offer -> person: "buyer (Person)" {
+  style.stroke: "#1a8a5c"
+  style.stroke-width: 2
+}
+offer -> organisation: "buyer (Org)" {
+  style.stroke: "#148f77"
+  style.stroke-width: 2
+}
+
+# Property ↔ Title (optional link)
+property -> title: "may have" {
+  style.stroke: "#2e86c1"
+  style.stroke-width: 1
+  style.stroke-dash: 5
+}

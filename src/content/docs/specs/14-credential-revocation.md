@@ -1,12 +1,12 @@
 ---
 title: "Spec: Credential Revocation"
-description: "Bitstring Status List implementation for credential revocation in PDTF 2.0."
+description: "W3C Bitstring Status List-based credential revocation."
 ---
 
 # PDTF 2.0 — Sub-spec 14: Credential Revocation
 
-**Version:** 0.1 (Draft)
-**Date:** 24 March 2026
+**Version:** 0.2 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
 **Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
@@ -251,7 +251,7 @@ The status list itself is published as a Verifiable Credential. This is a key de
 
 ### Requirements
 
-- **Signed by the issuer.** The status list credential MUST be signed by the same DID (and ideally the same key) that issued the credentials it covers. This prevents an attacker from publishing a forged status list.
+- **Signed by the credential issuer's key.** The status list credential MUST be signed by the same DID — and the same signing key — that issued the credentials it covers. No separate status list signing key is required or recommended. This aligns with W3C Bitstring Status List convention where the status list VC issuer matches the credential issuer, and prevents an attacker from publishing a forged status list.
 - **Contains the encoded bitstring.** The `credentialSubject.encodedList` field contains the gzip-compressed, base64-encoded bitstring.
 - **Minimum size.** The uncompressed bitstring MUST be at least 16KB (131,072 bits = 131,072 credential slots). This minimum ensures herd privacy — see [§12](#12-privacy-considerations).
 - **Identified by URL.** The `id` of the status list credential MUST match the URL at which it is hosted.
@@ -1042,7 +1042,7 @@ An issuer operating multiple status lists could potentially correlate credential
 
 ### Status List Credential Signing
 
-The status list credential MUST be signed by the same DID that issued the credentials it covers. This is the fundamental security property: an attacker cannot forge revocation status without compromising the issuer's signing key.
+The status list credential MUST be signed by the same DID — using the same signing key — that issued the credentials it covers. No separate status list signing key is provisioned. This is the fundamental security property: an attacker cannot forge revocation status without compromising the issuer's signing key, and the same key is used for both credential issuance and status list signing.
 
 **Key compromise impact:** If an issuer's signing key is compromised, an attacker could:
 - Forge a status list showing revoked credentials as active
@@ -1133,7 +1133,7 @@ Should verifiers be able to determine *when* a credential was revoked, not just 
 
 When an issuer rotates keys, the new key signs the status list. But the status list covers credentials signed by the old key. Should there be a constraint that status lists are signed by the same key as the credentials they cover, or just the same DID?
 
-**Proposed resolution:** Same DID is sufficient. The DID document lists all valid keys. Key rotation is a normal operational event and should not require creating new status lists.
+**Resolution:** Same DID is sufficient. Status list VCs are signed with the issuer's current primary key (the same key used for new credential issuance — there is no separate status list signing key). The DID document lists all valid keys. Key rotation is a normal operational event: after rotation, the new primary key signs both new credentials and updated status lists, while old credentials signed by the previous key remain verifiable via the DID document's `verificationMethod` array.
 
 ---
 
@@ -1282,3 +1282,12 @@ PDTF v1/v3 does not have credential revocation (claims are asserted through OIDC
 - [Sub-spec 04 — Trusted Issuer Registry](./04-trusted-issuer-registry.md) (issuer trust)
 - [Sub-spec 05 — Hosted Adapter Services](./05-hosted-adapter-services.md) (adapter-hosted status lists)
 - [Sub-spec 07 — State Assembly](./07-state-assembly.md) (dual-state assembly)
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.2 | 1 April 2026 | Status list signing explicitly requires same key as credential issuance — §4 requirements strengthened, §13 security updated, Q6 resolved. |
+| v0.1 | 24 March 2026 | Initial draft. W3C Bitstring Status List v1.0, 16KB minimum lists, revocation + suspension purposes, fail-closed policy, 5-min cache TTL, CDN hosting, batch revocation, index allocation, reference packages. |

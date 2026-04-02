@@ -1,12 +1,12 @@
 ---
 title: "Spec: Reference Implementations"
-description: "Package architecture, CLI tools, and reference implementation guides for PDTF 2.0."
+description: "Reference implementation packages and integration patterns."
 ---
 
 # PDTF 2.0 — Sub-spec 13: Reference Implementations
 
-**Version:** 0.1 (Draft)
-**Date:** 24 March 2026
+**Version:** 0.2 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
 **Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
@@ -113,7 +113,7 @@ The validator executes a sequential pipeline. Each stage can short-circuit on fa
 
 **Stage 3 — Signature Verification.** Canonicalises the credential using JCS (RFC 8785), then verifies the `eddsa-jcs-2022` proof against the resolved public key.
 
-**Stage 4 — TIR Lookup.** Queries the Trusted Issuer Registry to confirm the issuer DID is authorised for the specific `entity:path` combination claimed by the credential.
+**Stage 4 — TIR Lookup.** Queries the Trusted Issuer Registry to confirm the issuer DID is authorised for the specific `entity:path` combination claimed by the credential. When verifying a credential issued by or about an Organisation with a `did:key` identifier, the validator MUST check the TIR `accountProvider` entries' `managedOrganisations` registries to confirm the `did:key` is managed by a trusted provider.
 
 **Stage 5 — Expiry Check.** Validates `validFrom` ≤ now ≤ `validUntil` (if present). Configurable clock skew tolerance (default: 60 seconds).
 
@@ -194,6 +194,7 @@ type ValidationErrorCode =
   | 'ISSUER_NOT_IN_TIR'
   | 'UNTRUSTED_PATH'
   | 'TIR_NETWORK_ERROR'
+  | 'ORG_DID_KEY_NOT_IN_MANAGED_ORGS'
   // Temporal errors
   | 'CREDENTIAL_NOT_YET_VALID'
   | 'CREDENTIAL_EXPIRED'
@@ -897,6 +898,15 @@ Anticipated but out of scope for initial release:
 - [Sub-spec 06 — Key Management](./06-key-management.md)
 - [Sub-spec 07 — State Assembly](./07-state-assembly.md)
 - [Sub-spec 14 — Credential Revocation](./14-credential-revocation.md)
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.2 | 1 April 2026 | Organisation `did:key` verification added to §3.1 Stage 4 — validator MUST check TIR `managedOrganisations` registries. `ORG_DID_KEY_NOT_IN_MANAGED_ORGS` error code added to §3.3 taxonomy. |
+| v0.1 | 24 March 2026 | Initial draft. @pdtf/vc-validator (4-stage pipeline), @pdtf/vc-signer, @pdtf/did-resolver, @pdtf/graph-composer, @pdtf/tir-client packages. Error taxonomy, test vectors, integration patterns. |
 
 ---
 

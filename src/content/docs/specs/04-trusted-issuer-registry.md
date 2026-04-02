@@ -1,12 +1,12 @@
 ---
 title: "Spec: Trusted Issuer Registry"
-description: "The federated registry that establishes who can issue which types of property data credentials."
+description: "The federated Trusted Issuer Registry that controls who can issue what credentials."
 ---
 
 # PDTF 2.0 — Sub-spec 04: Trusted Issuer Registry
 
-**Version:** 0.1 (Draft)
-**Date:** 24 March 2026
+**Version:** 0.2 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
 **Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
@@ -208,6 +208,7 @@ The `userAccountProviders` section lists platforms that issue user DIDs (`did:ke
       "methods": ["email", "sms", "govuk-verify"],
       "description": "Email + SMS verification at registration. GOV.UK Verify integration planned."
     },
+    "managedOrganisations": "https://moverly.com/.well-known/pdtf-managed-orgs.json",
     "status": "active",
     "validFrom": "2026-03-01T00:00:00Z",
     "validUntil": null,
@@ -226,11 +227,56 @@ The `userAccountProviders` section lists platforms that issue user DIDs (`did:ke
 | `identityVerification` | object | OPTIONAL | Describes the identity verification methods used at onboarding |
 | `identityVerification.methods` | array of strings | OPTIONAL | List of verification methods (e.g. `email`, `sms`, `govuk-verify`, `document-check`) |
 | `identityVerification.description` | string | OPTIONAL | Human-readable description of verification process |
+| `managedOrganisations` | string (URL) | OPTIONAL | URL pointing to a signed JSON document listing the `did:key` identifiers of organisations whose identity has been verified by this account provider. Verifiers use this to trace an Organisation's `did:key` back to a trusted provider. See [Section 4.3.1](#431-managed-organisations-document). |
 | `status` | enum | REQUIRED | One of: `active`, `planned`, `deprecated`, `revoked` |
 | `validFrom` | string (ISO 8601) or null | OPTIONAL | Validity start date |
 | `validUntil` | string (ISO 8601) or null | OPTIONAL | Validity end date |
 | `contact` | string | OPTIONAL | Contact email |
 | `website` | string (URL) | OPTIONAL | Website |
+
+#### 4.3.1 Managed Organisations Document
+
+The `managedOrganisations` URL points to a signed JSON document listing the `did:key` identifiers of organisations whose identity has been verified by this account provider. The document is hosted by the provider and MUST be served over HTTPS.
+
+**Example document** at `https://moverly.com/.well-known/pdtf-managed-orgs.json`:
+
+```json
+{
+  "provider": "did:web:moverly.com",
+  "updated": "2026-03-24T12:00:00Z",
+  "organisations": [
+    {
+      "did": "did:key:z6MkpJmqLFMmaFHCqS9jVjMNRNHriSNkFCyG3MLbiqkVMhvm",
+      "name": "Smith & Jones LLP",
+      "sraNumber": "612345",
+      "companyNumber": "OC123456",
+      "verifiedAt": "2026-03-15T10:30:00Z"
+    },
+    {
+      "did": "did:key:z6MkrHKY8pMWMjEQj3FBaYGPnXtvAqRwPsGy2nVN6HRhk4tQ",
+      "name": "Acme Estate Agents Ltd",
+      "companyNumber": "12345678",
+      "verifiedAt": "2026-03-18T14:00:00Z"
+    }
+  ],
+  "proof": {
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
+    "verificationMethod": "did:web:moverly.com#key-1",
+    "created": "2026-03-24T12:00:00Z",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z4FXQje2VihZqE3WPgtvJh4Kv8..."
+  }
+}
+```
+
+**Key points:**
+
+- The document is signed by the account provider's DID key, providing integrity and non-repudiation.
+- Each organisation entry includes the `did:key` identifier and the regulatory identifiers that were verified.
+- The `verifiedAt` timestamp indicates when the organisation's identity was last verified.
+- Verifiers SHOULD cache this document (recommended TTL: 1 hour) and use conditional requests (ETag/If-None-Match) where supported.
+- The provider MUST update this document when organisations are added or removed.
 
 ### 4.4 JSON Schema Definition
 
@@ -391,6 +437,11 @@ The following JSON Schema (`schema/tir-schema.json`) validates the `registry.jso
             }
           },
           "additionalProperties": false
+        },
+        "managedOrganisations": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of a signed JSON document listing organisation did:key identifiers managed by this provider"
         },
         "status": {
           "type": "string",
@@ -1098,12 +1149,13 @@ The following entries constitute the initial TIR, aligned with the architecture 
     "moverly": {
       "name": "Moverly",
       "did": "did:web:moverly.com",
-      "description": "Issues user DIDs (did:key) as account provider. Validates user identity at onboarding via email, SMS, and document verification.",
+      "description": "Issues user DIDs (did:key) as account provider. Validates user and organisation identity at onboarding via email, SMS, and document verification.",
       "trustLevel": "accountProvider",
       "identityVerification": {
         "methods": ["email", "sms", "document-check"],
-        "description": "Email verification at registration, SMS verification for account recovery, document-based identity checks for seller/buyer roles."
+        "description": "Email verification at registration, SMS verification for account recovery, document-based identity checks for seller/buyer roles. Organisation identity verified via SRA number and Companies House registration."
       },
+      "managedOrganisations": "https://moverly.com/.well-known/pdtf-managed-orgs.json",
       "status": "active",
       "validFrom": "2026-03-01T00:00:00Z",
       "validUntil": null,
@@ -1394,6 +1446,15 @@ Common entity:path combinations referenced across PDTF 2.0 sub-specs:
 | **Account provider** | Platform that issues user/org DIDs with identity verification |
 | **DID** | Decentralised Identifier (W3C standard) |
 | **VC** | Verifiable Credential (W3C standard) |
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.2 | 1 April 2026 | `managedOrganisations` field added to `accountProvider` entries — URL to signed JSON listing verified Organisation `did:key` identifiers. JSON Schema updated. Initial registry entry for Moverly updated. |
+| v0.1 | 24 March 2026 | Initial draft. GitHub-hosted registry, entity:path authorisation, trust levels (rootIssuer/trustedProxy/accountProvider), status lifecycle, caching, CI validation, governance model, initial registry entries. |
 
 ---
 

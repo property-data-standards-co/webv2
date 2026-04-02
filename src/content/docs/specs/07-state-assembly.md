@@ -1,12 +1,12 @@
 ---
 title: "Spec: State Assembly"
-description: "Composing entity-graph credentials into v3 and v4 transaction state — bidirectional compatibility."
+description: "How entity-level VCs compose into a complete transaction state."
 ---
 
 # PDTF 2.0 — Sub-spec 07: State Assembly
 
-**Version:** 0.1 (Draft)
-**Date:** 24 March 2026
+**Version:** 0.2 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
 **Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
@@ -1077,6 +1077,17 @@ Dependency pruning changes the semantics of state assembly. It must be agreed wi
 - The conflict resolution rules (internal to Moverly initially)
 - The v4 state shape (new, no backward-compat constraint)
 
+### 6.10 Assembler Pruning Obligation (Pending Q1.1)
+
+If incremental MERGE semantics are adopted for any credential type, the assembler MUST apply schema dependency rules to prune stale paths. Pruning rules are derived from the schema's `if/then/else` conditions and `oneOf` discriminators. Issuers are stateless and have no visibility of assembled state — they cannot be expected to clear dependent paths. The assembler is the only component with full context to apply pruning correctly.
+
+This obligation exists because:
+- Issuers assert what they know at the time of issuance — an issuer changing `heatingType` to `None` does not know that a previous credential asserted `centralHeatingDetails`
+- Only the assembler sees all credentials for an entity and can evaluate which schema branches are active
+- The schema's existing conditional constructs (`if/then/else`, `oneOf` discriminators) already define the dependency rules — the assembler applies them during composition
+
+For adapter-issued credentials (EPC, title register, searches), section-level REPLACE may avoid the pruning question entirely — these issuers are authoritative for their whole subtree and re-issue complete data. For seller-attested credentials (TA6, TA7, fixtures), where data arrives incrementally, the assembler's pruning obligation is unavoidable under MERGE semantics.
+
 ---
 
 ## 7. Conflict Resolution
@@ -2096,6 +2107,15 @@ A non-exhaustive list of discriminator patterns in the PDTF schema that the prun
 | | "Allocated space" | `allocatedSpaceDetails` |
 
 **Note:** This table is illustrative. The authoritative list comes from walking the actual JSON Schemas. The implementation must discover discriminators dynamically, not from a hardcoded list.
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.2 | 1 April 2026 | Added §6.10 "Assembler Pruning Obligation" — assembler MUST apply schema dependency rules if MERGE semantics adopted. Issuers are stateless; pruning is assembly-time only. Schema `if/then/else` and `oneOf` discriminators define rules. |
+| v0.1 | 24 March 2026 | Initial draft. composeV4StateFromGraph and composeV3StateFromGraph algorithms, dependency pruning, conflict resolution, v3 backward compatibility, dual state assembly, trust-level-aware composition. |
 
 ---
 

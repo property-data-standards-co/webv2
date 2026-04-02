@@ -1,12 +1,12 @@
 ---
 title: "Spec: Entity Graph & Schema"
-description: "The nine entities, their schemas, identifiers, relationships, and decomposition rules."
+description: "The nine-entity graph that decomposes property data into independently verifiable components."
 ---
 
 # PDTF 2.0 — Sub-spec 01: Entity Graph & Schema
 
-**Version:** 0.1 (Draft)
-**Date:** 24 March 2026
+**Version:** 0.3 (Draft)
+**Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft for review (LMS collaboration)
 **Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
@@ -77,7 +77,7 @@ v4/combined.json (ID-keyed maps — single dev artifact)
 | **Property** | `urn:pdtf:uprn:{uprn}` | `v4/Property.json` | Physical property: address, build info, features, energy, environmental, legal questions — everything that goes in the logbook. |
 | **Title** | `urn:pdtf:titleNumber:{number}` or `urn:pdtf:unregisteredTitle:{id}` | `v4/Title.json` | Legal title: register extract, ownership type (freehold/leasehold), leasehold terms, encumbrances. |
 | **Person** | `did:key` | `v4/Person.json` | Natural person: name, contact, address, verification status. Role-free — role is contextual via relationship entities. |
-| **Organisation** | `did:web` | `v4/Organisation.json` | Legal entity: law firm, estate agency, lender. Access and representation are managed at org level, not individual level. |
+| **Organisation** | `did:key` or `did:web` | `v4/Organisation.json` | Legal entity: law firm, estate agency, lender. Access and representation are managed at org level, not individual level. |
 | **Ownership** | URN (generated) | `v4/Ownership.json` | Thin signed assertion: "Person/Org X is the owner of Title Y". Verified against title register. Revocable. |
 | **Representation** | URN (generated) | `v4/Representation.json` | Delegated authority from seller/buyer to an Organisation (conveyancer, estate agent). Issued by the instructing party. Revocable. |
 | **DelegatedConsent** | URN (generated) | `v4/DelegatedConsent.json` | Authorised data access for entities with legitimate need (lenders, etc.). Part of terms of use. |
@@ -106,7 +106,7 @@ Transaction (did:web:moverly.com:transactions:{id})
     │
     ├── representation: {
     │     "urn:pdtf:representation:{id}": {
-    │         organisationId: "did:web:smithandco.law",
+    │         organisationId: "did:key:z6MkpJ...",
     │         role: "sellerConveyancer",
     │         issuedBy: "did:key:z6Mkh..."  ← the seller
     │     }
@@ -295,6 +295,8 @@ Extracted from `participants[]` where the participant represents an organisation
 
 **Design note:** Individual fee earners (the solicitor handling your case) are *not* modelled in the transaction graph. The Organisation is the instructed party. Internal delegation is the Organisation's concern.
 
+**Identity note:** Most organisations will use provider-managed `did:key` identifiers issued by their case management platform (e.g. LMS). Self-hosted `did:web` is available for firms that want direct control of their identity, but adoption is expected to be gradual. The account provider is trusted to verify the organisation's identity and regulatory status before issuing a `did:key`.
+
 ### 4.6 Ownership Entity
 
 A thin signed assertion linking a Person or Organisation to a Title.
@@ -365,7 +367,7 @@ Links buyer(s) to the Transaction. Buyers exist only through Offers.
 | Title | `urn:pdtf:titleNumber:{number}` | `urn:pdtf:titleNumber:AB12345` | HMLR title number |
 | Title (unregistered) | `urn:pdtf:unregisteredTitle:{id}` | `urn:pdtf:unregisteredTitle:ut-7f3a` | Generated, may transition to registered |
 | Person | `did:key` | `did:key:z6Mkhabc123...` | Generated from key material |
-| Organisation | `did:web` | `did:web:smithandco.law` | Organisation's domain |
+| Organisation | `did:key` or `did:web` | `did:key:z6MkpJ...` or `did:web:smithandco.law` | Provider-managed or self-hosted |
 | Ownership | `urn:pdtf:ownership:{id}` | `urn:pdtf:ownership:own-1a2b` | Generated |
 | Representation | `urn:pdtf:representation:{id}` | `urn:pdtf:representation:rep-3c4d` | Generated |
 | DelegatedConsent | `urn:pdtf:consent:{id}` | `urn:pdtf:consent:dc-5e6f` | Generated |
@@ -658,6 +660,16 @@ The following are *value lists*, not entity collections. They remain as arrays:
 | `Lender` | Organisation | DelegatedConsent | Access, not representation |
 | `Landlord` | Person | Ownership (variant) | Leasehold context |
 | `Tenant` | Person | *(TBD)* | Occupancy, not ownership |
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.3 | 1 April 2026 | Organisation supports `did:key` (provider-managed) or `did:web` (self-hosted). Identity note added to Organisation entity section. Identifier system table updated. |
+| v0.2 | 24 March 2026 | Author attribution corrected. Ownership field assignment via logbook test incorporated. |
+| v0.1 | 24 March 2026 | Initial draft. 9 core entities, field mapping from v3 combined.json, identifier system (DIDs + URNs), collection conversion rules, transformation pipeline. |
 
 ---
 
