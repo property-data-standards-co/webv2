@@ -67,6 +67,7 @@ export default defineConfig({
 								{ label: 'Check Revocation', slug: 'docs/guides/check-revocation' },
 								{ label: 'Host a DID Document', slug: 'docs/guides/host-did-document' },
 								{ label: 'Organisation Onboarding', slug: 'docs/guides/org-onboarding' },
+						{ label: 'Key Management', slug: 'docs/guides/key-management' },
 							],
 						},
 						{
@@ -88,6 +89,7 @@ export default defineConfig({
 								{ label: 'pdtf-core (Python)', slug: 'docs/packages/python' },
 								{ label: 'Pdtf.Core (.NET)', slug: 'docs/packages/dotnet' },
 								{ label: 'Cross-Language Interop', slug: 'docs/packages/interop' },
+							{ label: 'Validation Service', slug: 'docs/packages/validate' },
 							],
 						},
 					],

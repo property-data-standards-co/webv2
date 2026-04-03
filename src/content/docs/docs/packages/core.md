@@ -34,6 +34,51 @@ const multibase = publicKeyToMultibase(keypair.publicKey);
 
 Keys use the `0xed01` multicodec prefix with base58-btc encoding (`z` prefix). All PDTF `did:key` identifiers start with `did:key:z6Mk`.
 
+#### Key Providers
+
+`@pdtf/core` ships with four `KeyProvider` implementations for different environments:
+
+| Provider | Backend | Use case | Install |
+|----------|---------|----------|---------|
+| `InMemoryKeyProvider` | RAM | Unit tests | Built-in |
+| `SqliteKeyProvider` | Local file | Dev / third-party testing | `npm i better-sqlite3` |
+| `FirestoreKeyProvider` | Firestore | Staging | `npm i @google-cloud/firestore` |
+| `KmsKeyProvider` | GCP Cloud KMS (HSM) | Production | `npm i @google-cloud/kms` |
+
+```ts
+import { SqliteKeyProvider, VcSigner } from '@pdtf/core';
+
+// Zero-config local key management
+const keys = new SqliteKeyProvider({ dbPath: './pdtf-keys.db' });
+const key = await keys.generateKey('my-adapter', 'adapter');
+const signer = new VcSigner(keys, 'my-adapter', key.did);
+
+// Start signing credentials
+const vc = await signer.sign({
+  type: 'PropertyDataCredential',
+  credentialSubject: {
+    id: 'urn:pdtf:uprn:100023336956',
+    energyEfficiency: { rating: 'B', score: 85 },
+  },
+});
+```
+
+For production with Cloud KMS:
+
+```ts
+import { KmsKeyProvider, VcSigner } from '@pdtf/core';
+
+const keys = new KmsKeyProvider({
+  projectId: 'my-project',
+  locationId: 'europe-west2',
+  keyRingId: 'pdtf',
+});
+const key = await keys.generateKey('epc-adapter', 'adapter');
+const signer = new VcSigner(keys, 'epc-adapter', key.did);
+```
+
+See the [Key Management guide](/web/docs/guides/key-management) for full setup instructions.
+
 ### signer
 
 Create `DataIntegrityProof` signatures using `eddsa-jcs-2022`.
@@ -140,11 +185,11 @@ npx @pdtf/core vc-verify ./credential.json
 
 ## Tests
 
-68 tests covering all modules:
+86 tests covering all modules:
 
 | Module | Tests | Coverage |
 |--------|-------|----------|
-| keys | 5 | Key generation, did:key derivation, roundtrip, multibase encoding |
+| keys | 17 | Key generation, did:key derivation, roundtrip, multibase encoding, SQLite provider, KMS provider |
 | signer | 3 | Proof creation, deterministic signing, proof structure |
 | did | 29 | Transaction DID manager, URN parsing, did:key resolution |
 | status | 7 | Create, encode/decode, set/get bits, roundtrip |
