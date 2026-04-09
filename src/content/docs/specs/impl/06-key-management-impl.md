@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Implements:** [Sub-spec 06 — Key Management](../06-key-management.md)
+**Implements:** [Sub-spec 06 — Key Management](../../06-key-management/)
 
 ---
 
@@ -2598,4 +2598,4 @@ At 100K users, the cost is meaningful but still modest relative to revenue. The 
 
 ---
 
-*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 06 — Key Management](../06-key-management.md).*
+*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 06 — Key Management](../../06-key-management/).*

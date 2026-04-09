@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 25 March 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Implements:** [Sub-spec 04 — Trusted Issuer Registry](../04-trusted-issuer-registry.md)
+**Implements:** [Sub-spec 04 — Trusted Issuer Registry](../../04-trusted-issuer-registry/)
 
 ---
 
@@ -1357,4 +1357,4 @@ The TIR is the cheapest piece of infrastructure in the entire PDTF 2.0 stack.
 
 ---
 
-*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 04 — Trusted Issuer Registry](../04-trusted-issuer-registry.md).*
+*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 04 — Trusted Issuer Registry](../../04-trusted-issuer-registry/).*

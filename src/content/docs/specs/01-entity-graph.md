@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft for review (LMS collaboration)
-**Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
+**Parent:** [00 — Architecture Overview](../00-architecture-overview/)
 
 ---
 
@@ -672,4 +672,4 @@ The following are *value lists*, not entity collections. They remain as arrays:
 
 ---
 
-*This is a living document. Decisions made here are logged as D26–D30 in the [Architecture Overview](./00-architecture-overview.md).*
+*This is a living document. Decisions made here are logged as D26–D30 in the [Architecture Overview](../00-architecture-overview/).*

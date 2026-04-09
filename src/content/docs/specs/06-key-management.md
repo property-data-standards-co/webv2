@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
+**Parent:** [00 — Architecture Overview](../00-architecture-overview/)
 
 ---
 
@@ -36,7 +36,7 @@ This spec covers key management for **credential signing and verification only**
 
 | Sub-spec | Relationship |
 |----------|-------------|
-| [01 — Entity Graph](./01-entity-graph.md) | Entities that hold DIDs backed by keys defined here |
+| [01 — Entity Graph](../01-entity-graph/) | Entities that hold DIDs backed by keys defined here |
 | 03 — DID Methods | DID documents reference `verificationMethod` entries whose keys are managed here |
 | 04 — VC Data Model | Credentials signed using the operations defined here |
 | 05 — Trust Architecture | TIR entries reference issuer DIDs whose keys are managed here |
@@ -1558,4 +1558,4 @@ At scale (10,000 users): ~$600/month for user keys + operations. Still modest co
 
 ---
 
-*This document is part of the PDTF 2.0 specification suite. For the complete list of sub-specs, see [00 — Architecture Overview](./00-architecture-overview.md).*
+*This document is part of the PDTF 2.0 specification suite. For the complete list of sub-specs, see [00 — Architecture Overview](../00-architecture-overview/).*

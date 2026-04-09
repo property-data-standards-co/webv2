@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
+**Parent:** [00 — Architecture Overview](../00-architecture-overview/)
 
 ---
 
@@ -48,7 +48,7 @@ Without a TIR, every verifier would need to maintain its own list of trusted iss
 
 ### 1.1 What the TIR Is Not
 
-The TIR is **not** a certificate authority. It does not issue or manage cryptographic keys. Issuers manage their own key material (see [Sub-spec 06: Key Management](./06-key-management.md)).
+The TIR is **not** a certificate authority. It does not issue or manage cryptographic keys. Issuers manage their own key material (see [Sub-spec 06: Key Management](../06-key-management/)).
 
 The TIR is **not** a DID registry. DID resolution happens separately via the appropriate DID method (`did:web` resolution, `did:key` derivation). The TIR references issuer DIDs but does not host DID documents.
 
@@ -1457,4 +1457,4 @@ Common entity:path combinations referenced across PDTF 2.0 sub-specs:
 
 ---
 
-*This document is part of the PDTF 2.0 specification suite. See [00 — Architecture Overview](./00-architecture-overview.md) for the full sub-spec index.*
+*This document is part of the PDTF 2.0 specification suite. See [00 — Architecture Overview](../00-architecture-overview/) for the full sub-spec index.*

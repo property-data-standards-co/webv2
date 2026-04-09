@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
+**Parent:** [00 — Architecture Overview](../00-architecture-overview/)
 
 ---
 
@@ -36,9 +36,9 @@ This spec covers:
 
 It does **not** cover:
 
-- Verifiable Credential data model (see [Sub-spec 02: VC Data Model](./02-vc-data-model.md))
-- Trusted Issuer Registry design (see [Sub-spec 04: Trusted Issuer Registry](./04-trusted-issuer-registry.md))
-- Access control and credential presentation protocols (see [Sub-spec 12: Adapter Access Control](./12-adapter-access-control.md))
+- Verifiable Credential data model (see [Sub-spec 02: VC Data Model](../02-vc-data-model/))
+- Trusted Issuer Registry design (see [Sub-spec 04: Trusted Issuer Registry](../04-trusted-issuer-registry/))
+- Access control and credential presentation protocols (see [Sub-spec 12: Adapter Access Control](../12-adapter-access-control/))
 
 ### 1.2 Normative References
 
@@ -1180,11 +1180,11 @@ This generates the key pair, constructs the DID document with regulatory metadat
 
 | Sub-spec | Relevance |
 |----------|-----------|
-| [01 — Entity Graph & Schema](./01-entity-graph.md) | Entity types that these identifiers address |
-| [02 — VC Data Model](./02-vc-data-model.md) | How DIDs appear in `issuer` and `credentialSubject.id` fields |
-| [04 — Trusted Issuer Registry](./04-trusted-issuer-registry.md) | TIR registration of `did:web` entities |
-| [12 — Adapter Access Control](./12-adapter-access-control.md) | DID Auth and credential presentation protocols |
-| [07 — State Assembly](./07-state-assembly.md) | How identifiers are used in graph composition |
+| [01 — Entity Graph & Schema](../01-entity-graph/) | Entity types that these identifiers address |
+| [02 — VC Data Model](../02-vc-data-model/) | How DIDs appear in `issuer` and `credentialSubject.id` fields |
+| [04 — Trusted Issuer Registry](../04-trusted-issuer-registry/) | TIR registration of `did:web` entities |
+| [12 — Adapter Access Control](../12-adapter-access-control/) | DID Auth and credential presentation protocols |
+| [07 — State Assembly](../07-state-assembly/) | How identifiers are used in graph composition |
 
 ---
 

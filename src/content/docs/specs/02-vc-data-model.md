@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
+**Parent:** [00 — Architecture Overview](../00-architecture-overview/)
 
 ---
 
@@ -30,7 +30,7 @@ Every piece of property data in PDTF 2.0 — from an EPC rating to an ownership 
 - Migration path from current OIDC verified claims
 
 **Out of scope:**
-- Entity graph structure and field mapping (see [01 — Entity Graph](./01-entity-graph.md))
+- Entity graph structure and field mapping (see [01 — Entity Graph](../01-entity-graph/))
 - DID methods and resolution (see 03 — DID Methods)
 - Trusted Issuer Registry schema and validation (see 04 — TIR)
 - State assembly algorithms (see 07 — State Assembly)
@@ -85,7 +85,7 @@ PDTF uses **embedded proofs** (Data Integrity), not external proofs (e.g. JWT-VC
 
 ### 2.5 Credential Subject Constraints
 
-PDTF credentials use a **single** `credentialSubject` (not an array). The `credentialSubject.id` is always present and MUST be a valid DID or URN from the PDTF identifier scheme (see [01 — Entity Graph §5](./01-entity-graph.md)).
+PDTF credentials use a **single** `credentialSubject` (not an array). The `credentialSubject.id` is always present and MUST be a valid DID or URN from the PDTF identifier scheme (see [01 — Entity Graph §5](../01-entity-graph/)).
 
 ```json
 {
@@ -112,7 +112,7 @@ If a credential needs to make assertions about multiple entities, issue separate
 
 ## 3. PDTF Credential Types
 
-Each entity type in the PDTF entity graph (see [01 — Entity Graph](./01-entity-graph.md)) has a corresponding credential type. The credential type determines the expected shape of `credentialSubject` and the valid `credentialSubject.id` identifier format.
+Each entity type in the PDTF entity graph (see [01 — Entity Graph](../01-entity-graph/)) has a corresponding credential type. The credential type determines the expected shape of `credentialSubject` and the valid `credentialSubject.id` identifier format.
 
 ### 3.1 Type Summary
 
@@ -128,7 +128,7 @@ Each entity type in the PDTF entity graph (see [01 — Entity Graph](./01-entity
 
 ### 3.2 PropertyCredential
 
-**Purpose:** Asserts facts about the physical property that travel with the property across transactions (the logbook — see [01 §2.1](./01-entity-graph.md)).
+**Purpose:** Asserts facts about the physical property that travel with the property across transactions (the logbook — see [01 §2.1](../01-entity-graph/)).
 
 **Subject ID:** `urn:pdtf:uprn:{uprn}` — the property's Unique Property Reference Number.
 
@@ -1913,7 +1913,7 @@ The `claimPath` in v1 uses the v3 schema paths. In v2, paths are relative to the
 
 ### 12.4 Migration Strategy
 
-The migration is not a big-bang cutover. It follows the dual state assembly approach (see [00 — Architecture Overview §8](./00-architecture-overview.md)):
+The migration is not a big-bang cutover. It follows the dual state assembly approach (see [00 — Architecture Overview §8](../00-architecture-overview/)):
 
 1. **Phase 1:** Continue issuing v1 verified claims. `composeStateFromClaims` works unchanged.
 2. **Phase 2:** Begin issuing VCs in parallel. Each adapter produces both a v1 claim and a v2 VC for the same data. `composeV3StateFromGraph` runs in shadow mode, output compared against `composeStateFromClaims`.

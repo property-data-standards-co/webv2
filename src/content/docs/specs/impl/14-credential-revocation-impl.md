@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 24 March 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Implements:** [Sub-spec 14 — Credential Revocation](../14-credential-revocation.md)
+**Implements:** [Sub-spec 14 — Credential Revocation](../../14-credential-revocation/)
 
 ---
 
@@ -1979,4 +1979,4 @@ At 10x scale (10,000 users, 100K credentials):
 
 ---
 
-*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 14 — Credential Revocation](../14-credential-revocation.md).*
+*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 14 — Credential Revocation](../../14-credential-revocation/).*

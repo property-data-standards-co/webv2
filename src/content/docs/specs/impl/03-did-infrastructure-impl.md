@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 24 March 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Implements:** [Sub-spec 03 — DID Methods & Identifiers](../03-did-methods.md)
+**Implements:** [Sub-spec 03 — DID Methods & Identifiers](../../03-did-methods/)
 
 ---
 
@@ -1265,4 +1265,4 @@ At 1,000 active transactions: ~$65/month for transaction DID KMS keys. Modest.
 
 ---
 
-*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 03 — DID Methods & Identifiers](../03-did-methods.md).*
+*This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 03 — DID Methods & Identifiers](../../03-did-methods/).*

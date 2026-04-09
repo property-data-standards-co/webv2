@@ -8,7 +8,7 @@ description: "PDTF 2.0 specification document."
 **Date:** 1 April 2026
 **Author:** Ed Molyneux / Moverly
 **Status:** Draft
-**Parent:** [00 — Architecture Overview](./00-architecture-overview.md)
+**Parent:** [00 — Architecture Overview](../00-architecture-overview/)
 
 ---
 
@@ -1222,7 +1222,7 @@ PDTF v1/v3 does not have credential revocation (claims are asserted through OIDC
 - V2 credentials MUST include `credentialStatus`
 - V3 state assembly (`composeV3StateFromGraph`) ignores revocation — it operates on OIDC claims
 - V4 state assembly (`composeV4StateFromGraph`) MUST check revocation before including any credential in the assembled state
-- The transition period may surface inconsistencies where a V3 state includes data from a revoked V2 credential — this is a known limitation addressed in the state assembly migration path (see [07 — State Assembly](./07-state-assembly.md))
+- The transition period may surface inconsistencies where a V3 state includes data from a revoked V2 credential — this is a known limitation addressed in the state assembly migration path (see [07 — State Assembly](../07-state-assembly/))
 
 ---
 
@@ -1276,11 +1276,11 @@ PDTF v1/v3 does not have credential revocation (claims are asserted through OIDC
 
 - [W3C Bitstring Status List v1.0](https://www.w3.org/TR/vc-bitstring-status-list/)
 - [W3C Verifiable Credentials Data Model v2.0](https://www.w3.org/TR/vc-data-model-2.0/)
-- [Sub-spec 02 — VC Data Model](./02-vc-data-model.md) (credential structure)
-- [Sub-spec 03 — DID Methods & Identifiers](./03-did-methods.md) (issuer DIDs)
-- [Sub-spec 04 — Trusted Issuer Registry](./04-trusted-issuer-registry.md) (issuer trust)
-- [Sub-spec 05 — Hosted Adapter Services](./05-hosted-adapter-services.md) (adapter-hosted status lists)
-- [Sub-spec 07 — State Assembly](./07-state-assembly.md) (dual-state assembly)
+- [Sub-spec 02 — VC Data Model](../02-vc-data-model/) (credential structure)
+- [Sub-spec 03 — DID Methods & Identifiers](../03-did-methods/) (issuer DIDs)
+- [Sub-spec 04 — Trusted Issuer Registry](../04-trusted-issuer-registry/) (issuer trust)
+- [Sub-spec 05 — Hosted Adapter Services](../05-hosted-adapter-services/) (adapter-hosted status lists)
+- [Sub-spec 07 — State Assembly](../07-state-assembly/) (dual-state assembly)
 
 ---
 
