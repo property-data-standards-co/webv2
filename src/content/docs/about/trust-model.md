@@ -97,4 +97,4 @@ The TIR records the trust level of each issuer, so verifiers always know the pro
 
 The fundamental shift is from *trusting people* to *verifying proofs*. The people are still there — conveyancers, search providers, registries — but their data now carries its own evidence.
 
-[See the roadmap →](../about/roadmap/)
+[See the roadmap →](/web/about/roadmap/)

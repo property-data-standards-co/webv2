@@ -77,7 +77,7 @@ const key = await keys.generateKey('epc-adapter', 'adapter');
 const signer = new VcSigner(keys, 'epc-adapter', key.did);
 ```
 
-See the [Key Management guide](../../docs/guides/key-management) for full setup instructions.
+See the [Key Management guide](/web/docs/guides/key-management) for full setup instructions.
 
 ### signer
 

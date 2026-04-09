@@ -26,4 +26,4 @@ The website repository was renamed from `webv2` to `web`. Update your bookmarks 
 - **Report issues** on the relevant repository
 - **Propose changes** via pull requests
 - **Discuss** in GitHub Discussions on the [spec](https://github.com/property-data-standards-co/spec/discussions) repo
-- **Read the specs** — start with the [Architecture Overview](../specs/00-architecture-overview/)
+- **Read the specs** — start with the [Architecture Overview](/web/specs/00-architecture-overview/)

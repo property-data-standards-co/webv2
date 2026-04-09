@@ -29,4 +29,4 @@ Verifiers fetch the TIR as part of credential verification:
 3. Confirm the issuer is authorised for this entity type and data path
 4. Check the issuer's status is active
 
-[Read the full TIR specification →](specs/04-trusted-issuer-registry/)
+[Read the full TIR specification →](/web/specs/04-trusted-issuer-registry/)

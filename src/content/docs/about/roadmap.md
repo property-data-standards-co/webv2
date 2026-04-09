@@ -79,7 +79,7 @@ These are estimates based on current progress and industry engagement. The archi
 PDTF 2.0 is an open standard. The specifications, reference implementations, and tooling are all developed in the open.
 
 - **Data sources** interested in becoming issuers: [contact us via GitHub](https://github.com/property-data-standards-co)
-- **Developers** building adapters or integrations: [read the quickstart](../docs/quickstart/)
-- **Industry stakeholders** wanting to understand the impact: [read the architecture overview](../architecture/overview/)
+- **Developers** building adapters or integrations: [read the quickstart](/web/docs/quickstart/)
+- **Industry stakeholders** wanting to understand the impact: [read the architecture overview](/web/architecture/overview/)
 
-[Explore the architecture →](../architecture/overview/)
+[Explore the architecture →](/web/architecture/overview/)

@@ -77,4 +77,4 @@ What changes is the *format* and *trustworthiness* of the data that flows betwee
 
 The transition is gradual. Today's systems continue working. PDTF 2.0 adds a layer of verifiability on top — and over time, that layer becomes the default.
 
-[Understand how trust works →](../about/trust-model/)
+[Understand how trust works →](/web/about/trust-model/)

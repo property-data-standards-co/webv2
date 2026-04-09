@@ -207,6 +207,6 @@ The entity decomposition is a **mechanical transformation**, not a creative rede
 | `transaction.*` | Transaction |
 | `offers[*].*` | Offer |
 
-The mapping is documented exhaustively in the [State Assembly specification](../specs/07-state-assembly/), which defines both `composeV3StateFromGraph()` (backward-compatible reassembly) and `composeV4StateFromGraph()` (new ID-keyed format).
+The mapping is documented exhaustively in the [State Assembly specification](/web/specs/07-state-assembly/), which defines both `composeV3StateFromGraph()` (backward-compatible reassembly) and `composeV4StateFromGraph()` (new ID-keyed format).
 
-[Read the full entity graph specification →](../specs/01-entity-graph/)
+[Read the full entity graph specification →](/web/specs/01-entity-graph/)
