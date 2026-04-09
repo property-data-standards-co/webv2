@@ -4,8 +4,8 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://propdata.org.uk',
-	base: '/',
+	site: 'https://property-data-standards-co.github.io',
+	base: '/web',
 	integrations: [
 		starlight({
 			title: 'PDTF 2.0 — Property Data Trust Framework',

@@ -53,4 +53,4 @@ Without provenance, every participant in the chain has to re-verify data through
 
 PDTF 2.0 addresses this root cause directly. By making every piece of property data independently verifiable, it removes the need to trust intermediaries and replaces it with something more reliable: cryptographic proof.
 
-[Read how PDTF 2.0 solves this →](/about/solution/)
+[Read how PDTF 2.0 solves this →](../about/solution/)

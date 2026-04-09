@@ -47,7 +47,7 @@ This decomposition means:
 - **Each entity is independently credentialed**. An EPC credential about the Property can be verified without any knowledge of the Transaction.
 - **Relationship entities are thin and revocable**. Ownership and Representation are signed assertions, not duplicated data.
 
-[Read the full entity graph specification →](/specs/01-entity-graph/)
+[Read the full entity graph specification →](../specs/01-entity-graph/)
 
 ## Verifiable Credentials
 
@@ -62,7 +62,7 @@ Every entity in the graph is wrapped in a W3C Verifiable Credential. A credentia
 
 The credential format follows the W3C Verifiable Credentials Data Model v2.0 specification, using the `eddsa-jcs-2022` cryptosuite for signatures.
 
-[Read the VC data model specification →](/specs/02-vc-data-model/)
+[Read the VC data model specification →](../specs/02-vc-data-model/)
 
 ## Decentralised Identifiers (DIDs)
 
@@ -81,7 +81,7 @@ Each entity type has a specific identifier scheme:
 | Person | `did:key:z6Mkh...` |
 | Organisation | `did:web:smithandco.law` |
 
-[Read the DID methods specification →](/specs/03-did-methods/)
+[Read the DID methods specification →](../specs/03-did-methods/)
 
 ## Trusted Issuer Registry (TIR)
 
@@ -97,7 +97,7 @@ It's a public, version-controlled JSON file that maps issuer DIDs to the entity 
 
 Verifiers check the TIR as part of credential verification — confirming not just that the signature is valid, but that the issuer is authorised for this specific type of data.
 
-[Read the TIR specification →](/specs/04-trusted-issuer-registry/)
+[Read the TIR specification →](../specs/04-trusted-issuer-registry/)
 
 ## Trust evolution
 
@@ -124,7 +124,7 @@ For backward compatibility with existing systems, PDTF 2.0 provides bidirectiona
 
 This means adopters can consume PDTF 2.0 credentials through either the new entity-graph model or the existing v3 format during migration.
 
-[Read the state assembly specification →](/specs/07-state-assembly/)
+[Read the state assembly specification →](../specs/07-state-assembly/)
 
 ## Credential revocation
 
@@ -136,7 +136,7 @@ This is particularly critical for:
 - **Representation credentials** — when a client changes solicitor, the old representation must be revoked
 - **Time-sensitive data** — EPCs, search results, and other data that expires or becomes outdated
 
-[Read the credential revocation specification →](/specs/14-credential-revocation/)
+[Read the credential revocation specification →](../specs/14-credential-revocation/)
 
 ## Specification suite
 
@@ -144,14 +144,14 @@ The complete PDTF 2.0 specification is organised into focused sub-specifications
 
 | Spec | Title | Focus |
 |------|-------|-------|
-| [00](/specs/00-architecture-overview/) | Architecture Overview | Master reference, design decisions, trust model |
-| [01](/specs/01-entity-graph/) | Entity Graph & Schema | Entity definitions, schemas, field mapping |
-| [02](/specs/02-vc-data-model/) | VC Data Model | Credential format, evidence, terms of use |
-| [03](/specs/03-did-methods/) | DID Methods & Identifiers | `did:key`, `did:web`, URN schemes |
-| [04](/specs/04-trusted-issuer-registry/) | Trusted Issuer Registry | Registry schema, trust levels, verification |
-| [06](/specs/06-key-management/) | Key Management | Key generation, storage, rotation |
-| [07](/specs/07-state-assembly/) | State Assembly | Graph composition, v3 compatibility |
-| [13](/specs/13-reference-implementations/) | Reference Implementations | Package architecture, CLI tools |
-| [14](/specs/14-credential-revocation/) | Credential Revocation | Bitstring Status List, revocation flows |
+| [00](../specs/00-architecture-overview/) | Architecture Overview | Master reference, design decisions, trust model |
+| [01](../specs/01-entity-graph/) | Entity Graph & Schema | Entity definitions, schemas, field mapping |
+| [02](../specs/02-vc-data-model/) | VC Data Model | Credential format, evidence, terms of use |
+| [03](../specs/03-did-methods/) | DID Methods & Identifiers | `did:key`, `did:web`, URN schemes |
+| [04](../specs/04-trusted-issuer-registry/) | Trusted Issuer Registry | Registry schema, trust levels, verification |
+| [06](../specs/06-key-management/) | Key Management | Key generation, storage, rotation |
+| [07](../specs/07-state-assembly/) | State Assembly | Graph composition, v3 compatibility |
+| [13](../specs/13-reference-implementations/) | Reference Implementations | Package architecture, CLI tools |
+| [14](../specs/14-credential-revocation/) | Credential Revocation | Bitstring Status List, revocation flows |
 
-[Browse all specifications →](/specs/00-architecture-overview/)
+[Browse all specifications →](../specs/00-architecture-overview/)

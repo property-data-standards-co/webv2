@@ -95,7 +95,7 @@ Moving to Verifiable Credentials isn't without cost:
 | **Key management** | Issuers need to generate, store, and rotate cryptographic keys. More complex than OAuth client credentials. |
 | **Revocation** | Credentials need a revocation mechanism. PDTF uses Bitstring Status List — effective but requires issuers to maintain status list endpoints. |
 | **Standards maturity** | The VC ecosystem is younger than OIDC. Tooling exists but isn't as battle-tested. |
-| **Migration** | Existing PDTF v1 implementations need to adopt new libraries and patterns. The [state assembly layer](/specs/07-state-assembly/) provides backward compatibility during transition. |
+| **Migration** | Existing PDTF v1 implementations need to adopt new libraries and patterns. The [state assembly layer](../specs/07-state-assembly/) provides backward compatibility during transition. |
 
 These are real costs, but they're implementation costs — they add complexity for system builders, not for end users. And the benefits — portable trust, cryptographic verification, federated issuance — are architectural advantages that compound over time.
 
@@ -105,4 +105,4 @@ OIDC verified claims were the right choice for PDTF v1: pragmatic, quick to impl
 
 But property data needs to be trusted across platforms, across organisations, and across time. Verifiable Credentials make the data itself trustworthy, not just the system serving it. That's the foundation PDTF 2.0 builds on.
 
-[Read the architecture overview →](/architecture/overview/)
+[Read the architecture overview →](../architecture/overview/)

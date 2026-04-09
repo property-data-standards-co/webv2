@@ -95,7 +95,7 @@ Property and Title credentials, identified by URN, can be referenced across tran
 
 ### Backward compatibility
 
-The [state assembly specification](/specs/07-state-assembly/) provides two composition functions:
+The [state assembly specification](../specs/07-state-assembly/) provides two composition functions:
 
 - `composeV3StateFromGraph()` — reassembles entity credentials back into the v3 monolithic format
 - `composeV4StateFromGraph()` — assembles into the new ID-keyed v4 format
@@ -122,4 +122,4 @@ The entity graph isn't a theoretical exercise in data modelling. It solves concr
 
 The Logbook Test provides a simple, repeatable principle for deciding where data belongs. The result is a graph of nine entities, each independently identifiable, independently verifiable, and independently revocable.
 
-[Explore the entity graph in detail →](/architecture/entities/)
+[Explore the entity graph in detail →](../architecture/entities/)
