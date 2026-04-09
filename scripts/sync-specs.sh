@@ -52,6 +52,7 @@ for spec in "$SPEC_DIR"/*.md; do
   # Skip README and LICENSE
   [[ "$filename" == "README.md" || "$filename" == "LICENSE" ]] && continue
   add_frontmatter "$spec" "$CONTENT_DIR/$filename"
+  python3 "$(dirname "$0")/fix-links.py" "$CONTENT_DIR/$filename"
   echo "  ✓ $filename"
 done
 
@@ -61,6 +62,7 @@ mkdir -p "$CONTENT_DIR/impl"
 for spec in "$SPEC_DIR"/impl/*.md; do
   filename="$(basename "$spec")"
   add_frontmatter "$spec" "$CONTENT_DIR/impl/$filename"
+  python3 "$(dirname "$0")/fix-links.py" "$CONTENT_DIR/impl/$filename"
   echo "  ✓ impl/$filename"
 done
 
