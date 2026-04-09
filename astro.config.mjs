@@ -9,6 +9,7 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'PDTF 2.0 — Property Data Trust Framework',
+			customCss: ['./src/styles/custom.css'],
 			logo: {
 				src: './public/logo.png',
 				alt: 'PDTF Logo',

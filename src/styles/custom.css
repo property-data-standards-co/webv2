@@ -1,0 +1,13 @@
+/* Fix for tables overlapping the right sidebar */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* Allow normal text wrapping inside table cells if the white-space: nowrap creates too long rows */
+.sl-markdown-content table th,
+.sl-markdown-content table td {
+  white-space: normal;
+  min-width: 150px;
+}
