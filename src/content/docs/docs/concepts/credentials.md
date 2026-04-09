@@ -90,4 +90,4 @@ That gives two essential checks:
 
 PDTF 2.0 credentials turn property data into something that can move safely between platforms, APIs, and agents without losing provenance. A verifier no longer needs to trust Moverly, LMS, or any other intermediary just because they served the JSON. It verifies the credential itself, checks the issuer in the Trusted Issuer Registry, and decides on that basis.
 
-That is the core trust shift in PDTF 2.0: **verify the claim, not the transport**.
+That is the core trust shift in PDTF 2.0: **make trust portable, by verifying the credential itself**.
