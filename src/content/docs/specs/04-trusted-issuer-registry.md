@@ -1,9 +1,8 @@
 ---
-title: "Spec: Trusted Issuer Registry"
-description: "The federated Trusted Issuer Registry that controls who can issue what credentials."
+title: "PDTF 2.0 — Sub-spec 04: Trusted Issuer Registry"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 04: Trusted Issuer Registry
 
 **Version:** 0.2 (Draft)
 **Date:** 1 April 2026

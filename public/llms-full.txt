@@ -34,6 +34,9 @@
 ## Consensus Questions
 17 open questions (Q1.1–Q6.3) requiring industry consensus, documented in the Architecture Overview §14.
 
+---
+
+# Full Specification Text
 
 ---
 
@@ -957,7 +960,6 @@ All architectural decisions made through v0.3 of this document are baked into th
 
 *This is a living document. As sub-specs are written and decisions are made, this overview will be updated to reflect the current state.*
 
-
 ---
 
 # PDTF 2.0 — Sub-spec 01: Entity Graph & Schema
@@ -1631,7 +1633,6 @@ The following are *value lists*, not entity collections. They remain as arrays:
 ---
 
 *This is a living document. Decisions made here are logged as D26–D30 in the [Architecture Overview](./00-architecture-overview.md).*
-
 
 ---
 
@@ -3819,7 +3820,6 @@ TransactionCredential
 
 *This is a living document. As implementation progresses and LMS consensus is reached on D5, this spec will be updated accordingly.*
 
-
 ---
 
 # PDTF 2.0 — Sub-spec 03: DID Methods & Identifiers
@@ -5018,7 +5018,6 @@ This generates the key pair, constructs the DID document with regulatory metadat
 ---
 
 *End of Sub-spec 03.*
-
 
 ---
 
@@ -6478,7 +6477,6 @@ Common entity:path combinations referenced across PDTF 2.0 sub-specs:
 ---
 
 *This document is part of the PDTF 2.0 specification suite. See [00 — Architecture Overview](./00-architecture-overview.md) for the full sub-spec index.*
-
 
 ---
 
@@ -8039,7 +8037,6 @@ At scale (10,000 users): ~$600/month for user keys + operations. Still modest co
 ---
 
 *This document is part of the PDTF 2.0 specification suite. For the complete list of sub-specs, see [00 — Architecture Overview](./00-architecture-overview.md).*
-
 
 ---
 
@@ -10161,7 +10158,6 @@ A non-exhaustive list of discriminator patterns in the PDTF schema that the prun
 
 *This is a living document. Decisions made here relate to D5, D10, and D15 in the [Architecture Overview](./00-architecture-overview.md). As the implementation progresses, this spec will be updated to reflect actual code and any design changes.*
 
-
 ---
 
 # PDTF 2.0 — Sub-spec 13: Reference Implementations
@@ -11072,7 +11068,6 @@ Anticipated but out of scope for initial release:
 ---
 
 *This specification is part of the PDTF 2.0 suite. For the full architecture, see [00 — Architecture Overview](./00-architecture-overview.md).*
-
 
 ---
 
@@ -12365,6 +12360,7 @@ PDTF v1/v3 does not have credential revocation (claims are asserted through OIDC
 | v0.2 | 1 April 2026 | Status list signing explicitly requires same key as credential issuance — §4 requirements strengthened, §13 security updated, Q6 resolved. |
 | v0.1 | 24 March 2026 | Initial draft. W3C Bitstring Status List v1.0, 16KB minimum lists, revocation + suspension purposes, fail-closed policy, 5-min cache TTL, CDN hosting, batch revocation, index allocation, reference packages. |
 
+# Implementation Specifications
 
 ---
 
@@ -13632,7 +13628,6 @@ At 1,000 active transactions: ~$65/month for transaction DID KMS keys. Modest.
 ---
 
 *This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 03 — DID Methods & Identifiers](../03-did-methods.md).*
-
 
 ---
 
@@ -14992,7 +14987,6 @@ The TIR is the cheapest piece of infrastructure in the entire PDTF 2.0 stack.
 ---
 
 *This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 04 — Trusted Issuer Registry](../04-trusted-issuer-registry.md).*
-
 
 ---
 
@@ -17594,7 +17588,6 @@ At 100K users, the cost is meaningful but still modest relative to revenue. The 
 
 *This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 06 — Key Management](../06-key-management.md).*
 
-
 ---
 
 # PDTF 2.0 — Implementation: Credential Revocation Infrastructure
@@ -19575,3 +19568,4 @@ At 10x scale (10,000 users, 100K credentials):
 ---
 
 *This document is part of the PDTF 2.0 implementation specification suite. For the protocol-level spec, see [Sub-spec 14 — Credential Revocation](../14-credential-revocation.md).*
+

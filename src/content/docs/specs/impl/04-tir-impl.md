@@ -1,9 +1,8 @@
 ---
-title: "Impl: TIR Implementation"
-description: "Implementation details for the Trusted Issuer Registry."
+title: "PDTF 2.0 — Implementation: Trusted Issuer Registry"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Implementation: Trusted Issuer Registry
 
 **Version:** 0.1 (Draft)
 **Date:** 25 March 2026

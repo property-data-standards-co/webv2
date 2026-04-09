@@ -1,9 +1,8 @@
 ---
-title: "Spec: DID Methods & Identifiers"
-description: "DID methods (did:key, did:web, urn:pdtf) used for identity in PDTF 2.0."
+title: "PDTF 2.0 — Sub-spec 03: DID Methods & Identifiers"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 03: DID Methods & Identifiers
 
 **Version:** 0.2 (Draft)
 **Date:** 1 April 2026

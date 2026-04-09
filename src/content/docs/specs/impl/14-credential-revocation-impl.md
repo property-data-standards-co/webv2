@@ -1,9 +1,8 @@
 ---
-title: "Impl: Credential Revocation"
-description: "Implementation details for credential revocation infrastructure."
+title: "PDTF 2.0 — Implementation: Credential Revocation Infrastructure"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Implementation: Credential Revocation Infrastructure
 
 **Version:** 0.1 (Draft)
 **Date:** 24 March 2026

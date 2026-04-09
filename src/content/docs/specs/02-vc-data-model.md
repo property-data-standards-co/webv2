@@ -1,9 +1,8 @@
 ---
-title: "Spec: Verifiable Credentials Data Model"
-description: "How property data maps to W3C Verifiable Credentials v2.0 with DataIntegrityProof."
+title: "PDTF 2.0 — Sub-spec 02: Verifiable Credentials Data Model"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 02: Verifiable Credentials Data Model
 
 **Version:** 0.3 (Draft)
 **Date:** 1 April 2026

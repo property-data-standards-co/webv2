@@ -1,9 +1,8 @@
 ---
-title: "Impl: DID Infrastructure"
-description: "Implementation details for DID infrastructure in PDTF 2.0."
+title: "PDTF 2.0 — Implementation: DID Infrastructure"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Implementation: DID Infrastructure
 
 **Version:** 0.1 (Draft)
 **Date:** 24 March 2026

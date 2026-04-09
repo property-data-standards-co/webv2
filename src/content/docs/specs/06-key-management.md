@@ -1,9 +1,8 @@
 ---
-title: "Spec: Key Management"
-description: "Key generation, storage, rotation, and recovery for PDTF 2.0 participants."
+title: "PDTF 2.0 — Sub-spec 06: Key Management"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 06: Key Management
 
 **Version:** 0.2 (Draft)
 **Date:** 1 April 2026

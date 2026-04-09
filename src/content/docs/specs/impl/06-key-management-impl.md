@@ -1,9 +1,8 @@
 ---
-title: "Impl: Key Management"
-description: "Implementation details for the Key Management Service."
+title: "PDTF 2.0 — Implementation: Key Management Service"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Implementation: Key Management Service
 
 **Version:** 0.3 (Draft)
 **Date:** 1 April 2026

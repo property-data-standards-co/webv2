@@ -1,9 +1,8 @@
 ---
-title: "Spec: Credential Revocation"
-description: "W3C Bitstring Status List-based credential revocation."
+title: "PDTF 2.0 — Sub-spec 14: Credential Revocation"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 14: Credential Revocation
 
 **Version:** 0.2 (Draft)
 **Date:** 1 April 2026

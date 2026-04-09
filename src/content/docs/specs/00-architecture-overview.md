@@ -1,9 +1,8 @@
 ---
-title: "Spec: Architecture Overview"
-description: "Master reference for the PDTF 2.0 architecture, design decisions, and trust model evolution."
+title: "PDTF 2.0 — Architecture Overview"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Architecture Overview
 
 **Version:** 0.6 (Draft)
 **Date:** 1 April 2026

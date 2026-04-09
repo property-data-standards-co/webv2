@@ -1,9 +1,8 @@
 ---
-title: "Spec: Reference Implementations"
-description: "Reference implementation packages and integration patterns."
+title: "PDTF 2.0 — Sub-spec 13: Reference Implementations"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 13: Reference Implementations
 
 **Version:** 0.2 (Draft)
 **Date:** 1 April 2026

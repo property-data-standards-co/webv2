@@ -24,14 +24,24 @@ add_frontmatter() {
   # Extract description from first paragraph after the metadata block
   local description="PDTF 2.0 specification document."
 
-  # Write frontmatter + original content
+  # Write frontmatter + original content (excluding the first H1 heading)
   {
     echo "---"
     echo "title: \"${heading}\""
     echo "description: \"${description}\""
     echo "---"
     echo ""
-    cat "$src"
+    # Remove the first occurrence of an H1
+    awk '
+      BEGIN { h1_removed = 0 }
+      /^# / {
+        if (!h1_removed) {
+          h1_removed = 1
+          next
+        }
+      }
+      { print }
+    ' "$src"
   } > "$dest"
 }
 

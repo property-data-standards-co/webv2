@@ -1,9 +1,8 @@
 ---
-title: "Spec: Entity Graph & Schema"
-description: "The nine-entity graph that decomposes property data into independently verifiable components."
+title: "PDTF 2.0 — Sub-spec 01: Entity Graph & Schema"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 01: Entity Graph & Schema
 
 **Version:** 0.3 (Draft)
 **Date:** 1 April 2026

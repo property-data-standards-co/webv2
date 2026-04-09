@@ -1,9 +1,8 @@
 ---
-title: "Spec: State Assembly"
-description: "How entity-level VCs compose into a complete transaction state."
+title: "PDTF 2.0 — Sub-spec 07: State Assembly"
+description: "PDTF 2.0 specification document."
 ---
 
-# PDTF 2.0 — Sub-spec 07: State Assembly
 
 **Version:** 0.2 (Draft)
 **Date:** 1 April 2026
