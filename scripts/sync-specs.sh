@@ -56,15 +56,8 @@ for spec in "$SPEC_DIR"/*.md; do
   echo "  ✓ $filename"
 done
 
-# Sync impl specs
-echo "📄 Syncing implementation specs..."
-mkdir -p "$CONTENT_DIR/impl"
-for spec in "$SPEC_DIR"/impl/*.md; do
-  filename="$(basename "$spec")"
-  add_frontmatter "$spec" "$CONTENT_DIR/impl/$filename"
-  python3 "$(dirname "$0")/fix-links.py" "$CONTENT_DIR/impl/$filename"
-  echo "  ✓ impl/$filename"
-done
+# NOTE: impl specs are deliberately excluded from the published site.
+# They are internal implementation docs, not for public consumption.
 
 # Sync diagrams
 if [ -d "$SPEC_DIR/diagrams" ]; then
@@ -90,15 +83,7 @@ LLMS_FULL="$(dirname "$0")/../public/llms-full.txt"
     cat "$spec"
     echo ""
   done
-  echo "# Implementation Specifications"
-  echo ""
-  for spec in "$SPEC_DIR"/impl/*.md; do
-    [ -f "$spec" ] || continue
-    echo "---"
-    echo ""
-    cat "$spec"
-    echo ""
-  done
+  # NOTE: impl specs excluded from public llms-full.txt (internal only)
 } > "$LLMS_FULL"
 echo "  ✓ llms-full.txt ($(wc -c < "$LLMS_FULL") bytes)"
 

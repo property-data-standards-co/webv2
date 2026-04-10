@@ -24,8 +24,9 @@ def fix_links(content, in_impl=False):
         if clean_url in ['05-hosted-adapter-services', '12-adapter-access-control']:
             return f'{text} (Coming Soon)'
             
+        # impl specs are not published — strip the link
         if clean_url in ['03-did-infrastructure-impl', '04-tir-impl', '06-key-management-impl', '14-credential-revocation-impl']:
-            return f'[{text}](/web/specs/impl/{clean_url}/)'
+            return text
             
         # fallback
         return f'[{text}](/web/specs/{clean_url}/)'

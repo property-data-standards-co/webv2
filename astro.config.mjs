@@ -10,6 +10,20 @@ export default defineConfig({
 		starlight({
 			title: 'PDTF 2.0 — Property Data Trust Framework',
 			customCss: ['./src/styles/custom.css'],
+			head: [
+				{
+					tag: 'script',
+					content: `
+						document.addEventListener('DOMContentLoaded', () => {
+							const banner = document.createElement('div');
+							banner.className = 'candidate-banner';
+							banner.innerHTML = '⚠️ Candidate Specification — This is a proposal published for industry review. It does not yet represent an adopted standard.';
+							document.body.prepend(banner);
+						});
+					`,
+				},
+			],
+
 			logo: {
 				src: './public/logo.png',
 				alt: 'PDTF Logo',
@@ -112,15 +126,7 @@ export default defineConfig({
 								{ label: '14 — Credential Revocation', slug: 'specs/14-credential-revocation' },
 							],
 						},
-						{
-							label: 'Implementation Specs',
-							items: [
-								{ label: '03 — DID Infrastructure', slug: 'specs/impl/03-did-infrastructure-impl' },
-								{ label: '04 — TIR Implementation', slug: 'specs/impl/04-tir-impl' },
-								{ label: '06 — Key Management', slug: 'specs/impl/06-key-management-impl' },
-								{ label: '14 — Credential Revocation', slug: 'specs/impl/14-credential-revocation-impl' },
-							],
-						},
+
 					],
 				},
 				{
