@@ -1,0 +1,10 @@
+---
+// Custom Banner override — shows candidate specification notice on every page
+const { banner } = Astro.locals.starlightRoute.entry.data;
+---
+
+<div class="sl-banner candidate-banner" data-pagefind-ignore>
+	⚠️ <strong>Candidate Specification</strong> — Published for industry review. Not yet an adopted standard.
+</div>
+
+{banner && <div class="sl-banner" data-pagefind-ignore set:html={banner.content} />}

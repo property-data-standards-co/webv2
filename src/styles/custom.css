@@ -1,13 +1,9 @@
 /* Candidate specification banner — shown on every page */
-.candidate-banner {
+.candidate-banner.sl-banner {
 	background: #f59e0b;
 	color: #1a1a1a;
-	text-align: center;
-	padding: 0.6rem 1rem;
-	font-size: 0.9rem;
-	font-weight: 600;
+	font-size: 0.85rem;
 	letter-spacing: 0.02em;
-	z-index: 100;
 }
 
 /* Fix for tables overlapping the right sidebar */

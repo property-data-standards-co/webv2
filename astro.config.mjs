@@ -10,19 +10,9 @@ export default defineConfig({
 		starlight({
 			title: 'PDTF 2.0 — Property Data Trust Framework',
 			customCss: ['./src/styles/custom.css'],
-			head: [
-				{
-					tag: 'script',
-					content: `
-						document.addEventListener('DOMContentLoaded', () => {
-							const banner = document.createElement('div');
-							banner.className = 'candidate-banner';
-							banner.innerHTML = '⚠️ Candidate Specification — This is a proposal published for industry review. It does not yet represent an adopted standard.';
-							document.body.prepend(banner);
-						});
-					`,
-				},
-			],
+			components: {
+				Banner: './src/components/Banner.astro',
+			},
 
 			logo: {
 				src: './public/logo.png',
