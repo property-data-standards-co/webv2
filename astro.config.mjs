@@ -114,6 +114,7 @@ export default defineConfig({
 								{ label: '07 — State Assembly', slug: 'specs/07-state-assembly' },
 								{ label: '13 — Reference Implementations', slug: 'specs/13-reference-implementations' },
 								{ label: '14 — Credential Revocation', slug: 'specs/14-credential-revocation' },
+								{ label: '15 — Conformance Testing', slug: 'specs/15-conformance-testing' },
 							],
 						},
 
