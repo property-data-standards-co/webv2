@@ -59,7 +59,7 @@ export default defineConfig({
 								{ label: 'DIDs', slug: 'docs/concepts/dids' },
 								{ label: 'Signing', slug: 'docs/concepts/signing' },
 								{ label: 'Revocation', slug: 'docs/concepts/revocation' },
-								{ label: 'Trusted Issuer Registry', slug: 'docs/concepts/tir' },
+								{ label: 'OpenID Federation', slug: 'docs/concepts/openid-federation' },
 							],
 						},
 						{
@@ -123,7 +123,7 @@ export default defineConfig({
 				{
 					label: 'Registry',
 					items: [
-						{ label: 'Trusted Issuer Registry', slug: 'registry' },
+						{ label: 'Property Trust Marks', slug: 'trust-marks' },
 					],
 				},
 				{
