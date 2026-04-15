@@ -23,18 +23,18 @@ The signing happens automatically, as part of the organisation's systems. They d
 
 A valid signature tells you *who* issued the data. But how do you know they're *authorised* to issue it?
 
-That's the job of the Trusted Issuer Registry (TIR). It's a public list that records which organisations are authorised to issue which types of property data.
+That's the job of the OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`). It's a public list that records which organisations are authorised to issue which types of property data.
 
 Think of it like the SRA roll for solicitors or the FCA register for financial firms. You can check whether someone is on it, and what they're authorised to do.
 
-The TIR answers a specific question: "Is this organisation allowed to issue this type of credential?" If the answer is yes, the credential is considered trustworthy. If not, it should be treated with caution.
+The OpenID Federation answers a specific question: "Is this organisation allowed to issue this type of credential?" If the answer is yes, the credential is considered trustworthy. If not, it should be treated with caution.
 
 ### 3. The verifier checks everything
 
 When someone receives a property data credential — a conveyancer checking title data, a lender verifying an EPC — they run three checks:
 
 1. **Signature check** — Does the digital signature match the data? Has anything been altered?
-2. **Registry check** — Is the issuer registered in the TIR for this type of data?
+2. **Registry check** — Is the issuer registered in the OpenID Federation for this type of data?
 3. **Revocation check** — Has the credential been revoked since it was issued?
 
 All three checks happen automatically, in milliseconds. No phone calls, no emails, no manual review. The verifier's software does the work.
@@ -57,7 +57,7 @@ Here's how it works for a real example — a local authority search:
 
 1. **Issuance.** The search provider conducts the search and issues a Verifiable Credential containing the results. The credential is signed with the search provider's private key.
 
-2. **Registration.** The search provider is listed in the TIR as an authorised issuer of local authority search credentials. Their registration includes their digital identity and the specific types of data they can issue.
+2. **Registration.** The search provider is listed in the OpenID Federation as an authorised issuer of local authority search credentials. Their registration includes their digital identity and the specific types of data they can issue.
 
 3. **Delivery.** The credential is delivered to the buyer's conveyancer — via whatever channel (email, API, portal). It doesn't matter how it arrives, because the credential proves itself.
 
@@ -82,7 +82,7 @@ Not all issuers are equal. PDTF 2.0 recognises three trust levels:
 
 During the early adoption phase, most credentials will come from trusted proxies — organisations that source data from existing systems and wrap it in Verifiable Credentials. Over time, the goal is for root issuers (like HMLR) to issue credentials directly, removing the need for proxies.
 
-The TIR records the trust level of each issuer, so verifiers always know the provenance chain.
+The OpenID Federation records the trust level of each issuer, so verifiers always know the provenance chain.
 
 ## What makes this different from today
 

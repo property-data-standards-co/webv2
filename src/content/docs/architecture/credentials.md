@@ -9,7 +9,7 @@ PDTF 2.0 represents property data as **W3C Verifiable Credentials (VCs)**. Each 
 
 A credential carries its own cryptographic proof. A recipient can verify integrity and issuer identity without trusting the API or database that delivered the JSON.
 
-In PDTF, signatures are necessary but not sufficient. Verifiers also consult the **Trusted Issuer Registry (TIR)** to confirm the issuer is authorised for the specific **entity:path** combinations being asserted.
+In PDTF, signatures are necessary but not sufficient. Verifiers also consult the **OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`)** to confirm the issuer is authorised for the specific **entity:path** combinations being asserted.
 
 ## Sparse credentials
 

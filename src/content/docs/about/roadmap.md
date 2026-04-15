@@ -25,12 +25,12 @@ The proxy model works because:
 **What's in place:**
 - The PDTF 2.0 specification suite (9 sub-specifications)
 - Entity graph and Verifiable Credential data model
-- Trusted Issuer Registry schema and initial entries
+- OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`) schema and initial entries
 - Reference implementations for credential issuance and verification
 - Credential revocation via Bitstring Status List
 
 **What's being built:**
-- npm packages for credential verification, DID resolution, and TIR checking
+- npm packages for credential verification, DID resolution, and OpenID Federation checking
 - CLI tools for developers
 - Adapter reference implementations
 
@@ -38,12 +38,12 @@ The proxy model works because:
 
 In this phase, third-party organisations build and host their own adapters. Instead of a single proxy issuing credentials, multiple organisations independently connect to data sources and issue credentials under their own identity.
 
-This decentralises the issuance layer. A conveyancer receiving a title register credential might get it from one of several authorised adapters, each independently registered in the TIR.
+This decentralises the issuance layer. A conveyancer receiving a title register credential might get it from one of several authorised adapters, each independently registered in the OpenID Federation.
 
 **What this requires:**
 - Published adapter specifications and guides
 - Accreditation process for new issuers
-- Multiple TIR entries per credential type
+- Multiple OpenID Federation entries per credential type
 - Monitoring and trust level management
 
 **Why it matters:**

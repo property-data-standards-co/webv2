@@ -1,11 +1,11 @@
 ---
-title: "Trusted Issuer Registry"
-description: "How the TIR governs who can issue which credentials"
+title: "OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`)"
+description: "How the OpenID Federation governs who can issue which credentials"
 ---
 
-The **Trusted Issuer Registry (TIR)** is the policy layer of PDTF 2.0. A valid signature tells you *who* signed a credential. The TIR tells you whether that issuer is actually **authorised** to make that kind of claim.
+The **OpenID Federation** is the policy layer of PDTF 2.0. A valid signature tells you *who* signed a credential. The OpenID Federation tells you whether that issuer is actually **authorised** to make that kind of claim.
 
-## Why the TIR exists
+## Why the OpenID Federation exists
 
 Anyone can generate a DID and sign JSON. That is not enough.
 
@@ -14,13 +14,13 @@ For example, a credential claiming title-register data should only be trusted if
 - `Title:/registerExtract/*`
 - `Title:/ownership/*`
 
-The TIR is how verifiers distinguish between:
+The OpenID Federation is how verifiers distinguish between:
 
 - a genuine root issuer
 - a trusted proxy adapter
 - an unrelated signer with no authority
 
-## What the TIR contains
+## What the OpenID Federation contains
 
 The registry is a public, version-controlled JSON document. It records:
 
@@ -71,13 +71,13 @@ This supports PDTF's three-phase trust evolution:
 2. more independently hosted adapters
 3. eventual primary-source issuance
 
-## How verification uses the TIR
+## How verification uses the OpenID Federation
 
 A verifier should not stop after checking the credential signature. It should also:
 
 1. resolve the issuer DID
 2. verify the credential proof
-3. load the TIR
+3. load the OpenID Federation
 4. find the issuer entry
 5. confirm the issuer is active
 6. confirm the issuer is authorised for the credential's entity paths
@@ -86,7 +86,7 @@ Only then should the claim be treated as trusted.
 
 ## Why GitHub-based governance
 
-The TIR is designed as a public GitHub repository rather than a hidden service. That gives:
+The OpenID Federation is designed as a public GitHub repository rather than a hidden service. That gives:
 
 - version history
 - visible change control
@@ -98,8 +98,8 @@ That is a good fit for trust infrastructure, where transparency matters as much 
 
 ## Why it matters
 
-The TIR is what makes federation workable. It decouples **cryptographic identity** from **domain authority**.
+The OpenID Federation is what makes federation workable. It decouples **cryptographic identity** from **domain authority**.
 
-A verifier does not need to hardcode trust in Moverly, LMS, HMLR, or any future adapter. It checks the issuer's DID, then checks the TIR to see whether that issuer is trusted for the exact claims being made.
+A verifier does not need to hardcode trust in Moverly, LMS, HMLR, or any future adapter. It checks the issuer's DID, then checks the OpenID Federation to see whether that issuer is trusted for the exact claims being made.
 
 That is the missing layer between "signed" and "authoritative", and it is essential to PDTF 2.0's trust model.

@@ -9,13 +9,13 @@ A verifier answers three questions:
 
 1. **Identity:** Who issued this credential? (DID resolution)
 2. **Integrity:** Was it altered? (signature verification)
-3. **Authority:** Is the issuer allowed to make this claim? (Trusted Issuer Registry authorisation)
+3. **Authority:** Is the issuer allowed to make this claim? (OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`) authorisation)
 
 ## Signatures are not enough
 
 Anyone can create a DID and sign JSON. A valid signature proves *who* signed, not whether they are authoritative.
 
-Authority is established via the **Trusted Issuer Registry (TIR)**, which grants trust at **entity:path** scope.
+Authority is established via the **OpenID Federation**, which grants trust at **entity:path** scope.
 
 ## Trust roles
 
@@ -33,7 +33,7 @@ PDTF expects trust to evolve:
 2. More independently hosted adapters reduce centralisation.
 3. Primary sources issue credentials directly when feasible.
 
-The TIR is the mechanism that expresses this evolution over time.
+The OpenID Federation is the mechanism that expresses this evolution over time.
 
 ## Visibility and conflicts
 
@@ -47,5 +47,5 @@ Consumers (lenders, conveyancers, agents) can choose how to surface or resolve c
 
 ## Where to go next
 
-- Read the TIR spec for governance and caching rules.
+- Read the OpenID Federation spec for governance and caching rules.
 - Read the VC data model and revocation specs for verification requirements.

@@ -1,6 +1,6 @@
 ---
 title: How PDTF 2.0 solves it
-description: Verifiable Credentials, cryptographic signatures, and a Trusted Issuer Registry — making property data independently verifiable.
+description: Verifiable Credentials, cryptographic signatures, and a OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`) — making property data independently verifiable.
 ---
 
 ## From photocopies to notarised originals
@@ -37,19 +37,19 @@ This means:
 
 No phone calls. No emails. No "can you confirm you sent this?" Just maths.
 
-### 3. Trusted Issuer Registry
+### 3. OpenID Federation
 
 Signatures prove *who* signed the data. But how do you know they're *authorised* to sign it?
 
-The Trusted Issuer Registry (TIR) is a public registry that records which organisations are authorised to issue which types of property data. It's the directory that connects identity to authority.
+The OpenID Federation is a public registry that records which organisations are authorised to issue which types of property data. It's the directory that connects identity to authority.
 
-For example, the TIR might record that:
+For example, the OpenID Federation might record that:
 
 - HM Land Registry is authorised to issue title register credentials
 - An accredited search provider is authorised to issue local authority search credentials
 - A regulated energy assessor is authorised to issue EPC credentials
 
-When you verify a credential, you check two things: does the signature match the issuer, and is the issuer registered in the TIR for this type of data? If both checks pass, you have verified, trustworthy data.
+When you verify a credential, you check two things: does the signature match the issuer, and is the issuer registered in the OpenID Federation for this type of data? If both checks pass, you have verified, trustworthy data.
 
 ## What changes for each participant
 

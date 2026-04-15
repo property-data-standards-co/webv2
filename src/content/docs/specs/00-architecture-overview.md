@@ -1,11 +1,11 @@
 ---
-title: "PDTF 2.0 — Architecture Overview"
+title: "00 Architecture Overview"
 description: "PDTF 2.0 specification document."
 ---
 
 
-**Version:** 0.6 (Draft)
-**Date:** 1 April 2026
+**Version:** 0.8 (Draft)
+**Date:** 9 April 2026
 **Author:** Ed Molyneux / Moverly
 
 ---
@@ -48,7 +48,7 @@ This document is the master reference for the PDTF 2.0 implementation. It links 
 | **Organisation** | `did:key` or `did:web` | `v4/Organisation.json` | Firm or company: conveyancer firm, estate agency, lender. Uses `did:key` when managed by an account provider (e.g. LMS) or `did:web` when self-hosting identity. |
 | **Ownership** | URN (generated) | `v4/Ownership.json` | Self-asserted claim of legal ownership linking a Person/Organisation DID to a Title URN. Starts as the owner's own assertion; verified against Title.registerExtract.proprietorship (claim-vs-evidence separation). The ownership claim establishes the right to sell. Revocable. |
 | **Representation** | URN (generated) | `v4/Representation.json` | Delegated authority to act on behalf of a seller or buyer. Typically issued to an Organisation (the firm), but supports Person holders too. Revocable. |
-| **DelegatedConsent** | URN (generated) | `v4/DelegatedConsent.json` | Authorised data access for entities like lenders. Part of terms of use for specific authorised entities. |
+| **DelegatedConsent** | URN (generated) | `v4/DelegatedConsent.json` | Authorised data access for entities like lenders. Part of terms of use for specific authorised entities (Q4.2 resolved via DelegatedConsentCredential). |
 | **Offer** | URN (generated) | `v4/Offer.json` (TBD) | Links buyer Person(s) or Organisation(s) to Transaction. Buyers participate only through Offers. Contains offer details, status, conditions. |
 | **Mortgage** | URN (generated) | Future | Tied to Offer/buyer. Flagged for growth — not in initial implementation. |
 
@@ -103,7 +103,7 @@ Transaction (did:web:moverly.com:transactions:*)
 **Participation decomposed:** The old "Participation" entity is replaced by three precise relationship types:
 - **Ownership** — self-asserted claim of legal ownership, linking a Person or Organisation DID to a Title URN. The owner starts by asserting their own ownership; the platform then seeks to verify this against Title.registerExtract.proprietorship (claim-vs-evidence separation). The ownership claim is what establishes the right to sell: a Transaction's referenced Titles are "for sale" because the legal owner — who holds the Ownership credential — is offering them for sale.
 - **Representation** — delegated authority to act on someone's behalf. Typically issued to an Organisation (the conveyancer firm, not the individual solicitor), because the professional duty and insurance liability sits with the firm. But the credential model supports both Person and Organisation holders — companies can also represent other companies.
-- **DelegatedConsent** — authorised access for entities like lenders, as part of terms of use. General consent mechanism for entities that aren't direct participants but have legitimate data access needs.
+- **DelegatedConsent** — authorised access for entities like lenders, as part of terms of use (Q4.2 resolved via DelegatedConsentCredential). General consent mechanism for entities that aren't direct participants but have legitimate data access needs.
 
 **Person vs Organisation:** Both can own, sell, buy, represent, and consent. The difference is structural, not role-based: an Organisation has a Companies House identity, SRA registration, and PI insurance — attributes that don't belong on a Person entity. Both get relationship credentials; both can be on either side of a transaction.
 
@@ -228,6 +228,36 @@ When `heatingType` changes from "Central heating" to "None", the `centralHeating
 State assembly uses MERGE semantics. A **dependency pruning pass** then strips `centralHeatingDetails` because the schema's `oneOf` discriminator on `heatingType` makes it irrelevant when value is "None".
 
 **Why this matters:** The pruning pass is the clean, spec-compliant way to handle dependent data. It requires implementers to understand schema discriminators, but the reference implementation will handle it and the alternative (REPLACE semantics with potential stale nested data) is worse.
+
+### 4.4 Proof Format: Data Integrity vs JWS/VC-JWT
+
+PDTF 2.0 uses **Data Integrity proofs** (`eddsa-jcs-2022`) rather than **JWS** (RFC 7515) / **VC-JWT**. Both are valid securing mechanisms for W3C VCs. The choice has meaningful consequences.
+
+| | Data Integrity (PDTF choice) | JWS / VC-JWT |
+|---|---|---|
+| Proof location | `proof` object embedded in the VC JSON | Detached JWS or entire VC wrapped as a JWT (header.payload.signature) |
+| Canonicalisation | JCS (JSON Canonicalization Scheme, RFC 8785) | None needed — signs raw bytes |
+| Human readability | VC is plain JSON, directly inspectable | VC-JWT requires base64 decoding before any claims are visible |
+| Selective disclosure path | Foundation for BBS+ and JSON-LD ZKP mechanisms | Requires SD-JWT (separate spec) |
+| W3C VC 2.0 positioning | Primary securing mechanism | Supported but positioned as legacy |
+| Ecosystem fit | Emerging VC/DID ecosystem | Mature OIDC/OAuth ecosystem |
+| Key algorithm | Ed25519 (via `eddsa-jcs-2022` cryptosuite) | Algorithm-agnostic (RS256, ES256, EdDSA, etc.) |
+
+**Rationale for Data Integrity:**
+
+1. **JSON-native.** PDTF VCs stay as parseable JSON throughout their lifecycle. Consumers, debuggers, and AI agents can read claims without decoding. VC-JWT produces opaque base64 blobs that must be unpacked before inspection.
+
+2. **Selective disclosure upgrade path.** Data Integrity is the foundation for BBS+ signatures, enabling future scenarios like "share the EPC rating but not the address" without re-issuance. JWS has no equivalent path — SD-JWT is a separate, less mature specification.
+
+3. **W3C alignment.** The VC Data Model v2.0 editors have positioned Data Integrity as the primary path forward. Choosing it keeps PDTF aligned with the spec's direction of travel.
+
+4. **Deterministic serialisation.** JCS provides a canonical JSON form regardless of whitespace or key ordering. VC-JWT avoids this by signing raw bytes, but that makes the exact byte representation significant — fragile when VCs move between systems that may re-serialise.
+
+**Where JWS remains relevant to PDTF:**
+
+- **Transport layer.** OAuth-based auth flows, VP tokens in OIDC4VP presentations, and DID Auth challenges may use JWS/JWT as the *transport envelope* while the credentials inside remain Data Integrity VCs.
+- **Interoperability bridges.** Systems with existing JWT infrastructure (common in LMS and lender platforms) may prefer a VC-JWT view. A bridge that re-wraps a Data Integrity VC as a VC-JWT is mechanically straightforward.
+- **Status list credentials.** The Bitstring Status List spec permits either securing mechanism. PDTF uses Data Integrity for consistency, but JWS would technically work.
 
 ---
 
@@ -411,7 +441,50 @@ GitHub-based, AI agent-managed, no UI. Lives at `property-data-standards-co/trus
 
 Issuers of user DIDs (the `did:key` identities for sellers, buyers, conveyancers etc.) **must also be listed in the TIR**. When verifying an Ownership or Representation credential, the verifier needs to confirm that the person's DID was issued by a recognised account provider. These are categorised as `userAccountProviders` in the TIR — currently Moverly, but extensible to any onboarding platform (e.g. a digital ID wallet provider, an LMS user portal).
 
-### 6.4 Three-Phase Evolution
+### 6.4 Trust Infrastructure Comparison: TIR vs OpenID Federation vs EBSI
+
+The PDTF Trusted Issuer Registry is one of several approaches to the problem of "who is authorised to issue which credentials?". The two major alternatives are **OpenID Federation** and **EBSI's Root-TAO/TAO hierarchy**.
+
+| | PDTF TIR (current) | OpenID Federation | EBSI Root-TAO / TAO |
+|---|---|---|---|
+| Trust anchor | GitHub-hosted registry JSON | Trust Anchor Entity Statement | Root TAO (governmental) |
+| Authority scope | entity:path combos | metadata_policy on credential types | VerifiableAccreditation VC |
+| Discovery | Fetch registry, lookup issuer DID | HTTP `.well-known/openid-federation` chain resolution | DID resolution + on-chain registry |
+| Chain depth | Flat (anchor → issuer) | Flexible (n levels) | Fixed 3-tier (Root TAO → TAO → TI) |
+| Chain format | Plain JSON | Signed JWTs (Entity Statements) | VCs (accreditations are VCs) |
+| Revocation of trust | Remove entry from registry | Expire/withdraw Entity Statement | Revoke the accreditation VC |
+| Governance | PR-based, human review | Federated (each anchor sets policy) | Centralised (EU institutional) |
+| Infrastructure | Git + HTTPS | HTTPS endpoints | Permissioned blockchain (EBSI ledger) |
+| UK ecosystem fit | High (simple, transparent) | High (OIDC-native) | Low (EU-centric, blockchain dependency) |
+
+**Why the flat TIR is right for Phase 1–2:**
+
+- Small issuer count (< 20). A flat registry is the simplest correct solution.
+- PR-based governance provides full transparency and audit trail — critical for industry trust-building.
+- No infrastructure dependencies beyond Git and HTTPS.
+
+**OpenID Federation as the likely Phase 3 evolution:**
+
+When primary sources (HMLR, local authorities) issue credentials directly, they will not submit PRs to a third-party GitHub repo. OpenID Federation allows each organisation to publish trust metadata at their own endpoints, with verifiers resolving chains back to a shared trust anchor. Key advantages:
+
+- Plugs into existing OAuth/OIDC infrastructure that platforms already operate.
+- Flexible chain depth accommodates the lateral trust relationships in property (HMLR does not "accredit" conveyancing firms in a top-down hierarchy).
+- Credential-format agnostic — works with Data Integrity VCs.
+- Being adopted by the EU Digital Identity Wallet (EUDI) architecture, giving potential future EU interoperability.
+
+**Why not EBSI's model:**
+
+EBSI's Root-TAO/TAO hierarchy is conceptually elegant — trust chains are VCs all the way down. But it carries dependencies that do not fit the UK property ecosystem:
+
+- Requires a permissioned blockchain. The UK government is not investing in this infrastructure for property.
+- Fixed three-tier hierarchy assumes governmental top-down accreditation. Property trust relationships are more lateral than hierarchical.
+- Schema overhead: every accreditation level needs its own VC type, issuance flow, and revocation mechanism.
+
+**A possible hybrid for Phase 3:** Use VC-based accreditations (like EBSI's model) but resolve them via HTTP discovery (like OpenID Federation) rather than a ledger. The TIR becomes a set of discoverable accreditation VCs hosted at well-known endpoints, rather than a single GitHub JSON file.
+
+**Design implication:** The TIR client API (`isAuthorised(issuerDid, entityPaths)`) is deliberately backend-agnostic. The implementation can evolve from "fetch GitHub JSON" to "resolve OpenID Federation trust chain" without changing the verification interface. This is intentional forward-compatibility.
+
+### 6.5 Three-Phase Evolution
 
 **Phase 1 (now): Moverly Trusted Proxies**
 - Moverly's existing collectors become VC-issuing adapters
@@ -508,10 +581,12 @@ Three state assembly functions, used in sequence:
 
 ### 8.2 Migration Path
 
+Migration strategy is resolved via parallel running (Q6.1–Q6.3 resolved).
+
 ```
 Phase 1: composeStateFromClaims (existing, v3 shape)
          ↓ parallel
-Phase 2: composeV3StateFromGraph (same output as Phase 1, different input)
+Phase 2: composeV3StateFromGraph (same output as Phase 1, different input) - parallel running resolves Q6
          → validate: outputs must match
          → once confident, replace Phase 1 internally
          ↓ parallel
@@ -834,58 +909,43 @@ For local development and unit testing, `did:key` eliminates all infrastructure 
 | 12 | `12-access-control-and-encryption.md` | TODO | DID Auth (OAuth delegation + direct), VP presentation, VC envelope encryption *(Phase 2+)*, platform sync |
 | 13 | `13-reference-implementations.md` | DRAFTED | VC validator, graph composer, DID resolver specs |
 | 14 | `14-credential-revocation.md` | DRAFTED | Bitstring Status List hosting, revocation flows, cache strategy |
+| 15 | `15-conformance-testing.md` | DRAFTED | Conformance levels, test vectors, interop protocols |
 
 ---
 
 ## 14. Decisions Log
 
-All architectural decisions made through v0.3 of this document are baked into the spec text above. The decision log below tracks only **open questions requiring industry consensus** — the 17 items identified for the consensus session, grouped by theme.
+All architectural decisions made through v0.3 of this document are baked into the spec text above. The decision log below tracks only the consensus questions identified for industry review.
 
-### Theme 1: Claims Merge Semantics
+### 14.1 Resolved consensus decisions
+
+| # | Question | Decision | Date |
+|---|----------|----------|------|
+| Q1.2 | Credential granularity for seller attestations | PDTF does not prescribe granularity. Issuers choose what subtree to assert per credential. This tradeoff absorbs into Q1.1 — see resolution note there. | Apr 2026 |
+| Q1.3 | Multi-credential merge conflicts | PDTF does not prescribe conflict resolution logic. The state assembly library provides a simple timestamp-ordered merge as a convenience; verifiers apply their own business logic (trust level weighting, recency, source preference) on top. All underlying credentials remain available for inspection. | Apr 2026 |
+| Q2.2 | Trust-level conflict visibility | Conflict surfacing is a verifier/UI concern, not a spec requirement. All trust levels and sources are carried in the credentials themselves, so consumers can render them however they wish. | Apr 2026 |
+| Q3.3 | Credential `id` required | Yes — every credential MUST include an `id` for deduplication during state assembly. Privacy implications of credential correlation are secondary to assembly determinism. Format: `urn:pdtf:vc:{uuid}`. | Apr 2026 |
+| Q4.1 | Organisation DID hosting for small firms | Both self-hosted `did:web` and orchestrator-hosted DIDs are supported. In Phase 1 and beyond, small firms are expected to use orchestrator-hosted identities — orchestrators provide the account and auth UX firms already rely on, and manage DIDs on their behalf. | Apr 2026 |
+| Q4.2 | Lender access pattern | Lenders access transaction data via DelegatedConsentCredential (see sub-spec 02 §3.6). The buyer explicitly grants consent to a specific lender's Organisation DID per application. This composes with `termsOfUse.confidentiality: "restricted"` — restricted data requires either direct participation (Ownership / Representation / Offer) or an explicit DelegatedConsentCredential. No role-based lender pooling. | Apr 2026 |
+| Q5.2 | Multiple issuers per path | Permitted and expected. Multiple commercial search providers, valuation services, and similar will legitimately issue credentials against the same entity:path combinations. The TIR does not enforce exclusivity. | Apr 2026 |
+| Q6.1–Q6.3 | Migration strategy | Migration proceeds by running PDTF v1 and v2 operations in parallel. New transactions start on v2; in-flight transactions continue on v1 until they close. When all active transactions support v2 output, v1 is retired. State assembly supports both formats throughout the overlap. | Apr 2026 |
+
+### 14.2 Open consensus questions
 
 | # | Question | Spec Ref | Decision | Date |
 |---|----------|----------|----------|------|
-| Q1.1 | Claims merge strategy: section-level REPLACE (natural for adapter data), incremental MERGE (necessary for seller attestations), or a hybrid per credential type? If MERGE, should the assembler prune schema-dependent paths when discriminators change? Issuers are stateless and cannot be responsible for pruning. | 02 §5, 07 §4 | | |
-| Q1.2 | Credential granularity for seller attestations: per-form, per-section, or per-field? Directly affects Q1.1 — finer granularity requires MERGE semantics. | 02 §3 | | |
-| Q1.3 | Multi-credential merge conflicts: latest timestamp, trust level priority, or explicit conflict resolution | 02 §13.2 | | |
-
-### Theme 2: Entity Model & Credential Boundaries
-
-| # | Question | Spec Ref | Decision | Date |
-|---|----------|----------|----------|------|
+| Q1.1 | Claims merge strategy: REPLACE vs MERGE vs hybrid. | 02 §5, 07 §4 | Issuer-driven credential granularity cannot be mandated (see Q1.2 resolution), which weakens the REPLACE case: REPLACE requires issuers to understand path boundaries precisely. MERGE with schema-driven pruning is simpler for issuers but requires the assembler to understand dependencies. Tradeoff still open for industry consensus. | |
 | Q2.1 | Multi-property transactions: how do overlays, form mappings, and v3 `propertyPack` (singular) handle multiple properties? | 01 §9.1, 07 §12.1 | | |
-| Q2.2 | Should trust-level conflicts between credentials be visible to transaction participants? | 07 §12.1 | | |
 
-### Theme 3: Identifier Design
+### 14.2.1 Theme 7: Entity Model Boundaries
 
-| # | Question | Spec Ref | Decision | Date |
-|---|----------|----------|----------|------|
-| Q3.1 | Search result identifiers: composite key, synthetic UUID, or provider-scoped URN? | 01 §9.1 | | |
-| Q3.2 | Unregistered title identifiers: UUID v4 vs v5 (deterministic from UPRN), and first-registration transition mechanism | 03 §10.1 | | |
-| Q3.3 | Should every credential have an `id` field? Deduplication vs privacy (correlation vectors) | 02 §13.1 | | |
+Decomposing the v1 monolithic property pack schema into entity-scoped schemas raises design questions that weren't captured in the original themes. The Entity Graph (sub-spec 01) defines the entities and their relationships, but the exact field-level seams between them require validation. This theme collects those decisions.
 
-### Theme 4: Organisation Identity
-
-| # | Question | Spec Ref | Decision | Date |
-|---|----------|----------|----------|------|
-| Q4.1 | Organisation DID hosting for small firms: registry-hosted delegation, mandatory self-hosting with tooling, or both? | 03 §10.2 | | |
-| Q4.2 | Organisation discovery: domain-based identity, SRA/Companies House numbers, or discovery registry? | 01 §9.1 | | |
-
-### Theme 5: Trust Infrastructure Governance
-
-| # | Question | Spec Ref | Decision | Date |
-|---|----------|----------|----------|------|
-| Q5.1 | TIR governance: who reviews/approves entries in Phase 2+? Should the TIR itself be signed (JWS)? | 04 §13 | | |
-| Q5.2 | Multiple issuers for the same data path — allowed or exclusive? | 04 §13 | | |
-| Q5.3 | Test/staging TIR: separate registry or `test` status flag in the main registry? | 04 §13 | Separate branches in same repo (`main` = prod, `staging` = staging). See §12.5. | Apr 2026 |
-
-### Theme 6: Migration & Backward Compatibility
-
-| # | Question | Spec Ref | Decision | Date |
-|---|----------|----------|----------|------|
-| Q6.1 | Participant migration strategy for live transactions (role strings → Organisation + Representation credential) | 01 §9.1 | | |
-| Q6.2 | Buyer Person/Organisation creation timing: on offer submission, on acceptance, or when? Minimum data required? | 01 §9.1 | | |
-| Q6.3 | v3 backward compatibility contract: must array ordering match current v3-from-claims composer, or is semantically equivalent acceptable? | 07 §12.1 | | |
+| # | Question | Preferred direction | Status |
+|---|----------|---------------------|--------|
+| Q7.1 | Where does the schema-level `ownership` object decompose to? | Top-level properties of v1 `ownership` (numberOfSellers, outstandingMortgage, existingLender, helpToBuyEquityLoan, limitedCompanySale, etc.) move to `Transaction.saleContext.*`. The legal interest being transferred (formerly `ownershipsToBeTransferred[]`) moves to the top level of the `Title` entity, because a `TitleCredential` fundamentally represents an ownership interest being conveyed. Supporting register evidence (register extract, charges) moves under a `title` sub-object on the `Title` entity. Note: this is the schema decomposition question — distinct from the entity-graph-level Ownership credential (the thin Person↔Title assertion, see sub-spec 02 §3.4), which is unchanged. | Preferred |
+| Q7.2 | Identifier for unregistered titles | `urn:pdtf:unregisteredTitle:{uuid}` per sub-spec 03 §10.1, but UUID derivation method (v4 random vs v5 deterministic from UPRN) and first-registration transition mechanism still open. This is a hard dependency for Q7.1 — `Title.ownershipToBeTransferred` applies to registered and unregistered titles equally, so the identifier question blocks finalisation. | Open |
+| Q7.3 | Field-level seams between Property and Title | The boundary between physical property facts (EPC, flood, construction) and legal title facts (charges, proprietorship, lease terms) is clear in principle, but edge cases exist (e.g., boundary disputes, rights of way). Validate on a field-by-field basis during schema review. | Open |
 
 ---
 
@@ -911,6 +971,8 @@ All architectural decisions made through v0.3 of this document are baked into th
 
 | Version | Date | Changes |
 |---------|------|---------|
+| v0.8 | 14 April 2026 | §4.4 Proof Format Comparison added — Data Integrity vs JWS/VC-JWT rationale. §6.4 Trust Infrastructure Comparison added — TIR vs OpenID Federation vs EBSI Root-TAO/TAO with Phase 3 evolution path. Previous §6.4 renumbered to §6.5. |
+| v0.7 | 9 April 2026 | §14 Decisions Log restructured. Consensus questions resolved and moved to §14.1. Theme 7 Entity Model Boundaries added. |
 | v0.6 | 2 April 2026 | §12.5 Environment Separation added — three-tier model (local dev/staging/prod), domain conventions, cross-contamination protection. Q5.3 resolved. |
 | v0.5 | 1 April 2026 | Encryption deferred to Phase 2+ (§12.3 Phase 1 note). Organisation `did:key` support formalised alongside `did:web`. Status list signing aligned to issuer key. Merge semantics (Q1.1) reframed: issuers are stateless, pruning is an assembly concern. Q1.2 updated to connect credential granularity to merge strategy. |
 | v0.4 | 29 March 2026 | Person/Organisation symmetry — all relationship credentials support both. Ownership reframed as self-asserted right to sell. Decision log restructured: D1–D32 baked into spec text, log now tracks only 17 consensus questions (Q1.1–Q6.3). Entity relationship diagram rebuilt with Organisation as first-class entity. |

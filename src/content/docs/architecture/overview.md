@@ -21,7 +21,7 @@ The result: property data that is independently verifiable, portable between sys
 | **Provenance** | OIDC-derived evidence schema (deeply nested) | Simpler evidence model reflecting actual usage patterns |
 | **Access control** | Platform-enforced role checks | Per-credential `termsOfUse` + participation credential presentation |
 | **Interoperability** | REST API, platform-specific | DID documents with service endpoints, MCP-compliant API |
-| **Trust** | Single platform trust | Federated trust via Trusted Issuer Registry |
+| **Trust** | Single platform trust | Federated trust via OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`) |
 
 ## The entity graph
 
@@ -54,7 +54,7 @@ This decomposition means:
 Every entity in the graph is wrapped in a W3C Verifiable Credential. A credential contains:
 
 - **The data** — the entity itself (e.g. a Property with its address, EPC rating, flood risk data)
-- **The issuer** — identified by a DID, registered in the Trusted Issuer Registry
+- **The issuer** — identified by a DID, registered in the OpenID Federation
 - **A cryptographic signature** — proving the data came from the issuer and hasn't been modified
 - **Evidence** — provenance chain showing where the data came from
 - **Terms of use** — confidentiality and access restrictions
@@ -83,9 +83,9 @@ Each entity type has a specific identifier scheme:
 
 [Read the DID methods specification →](/web/specs/03-did-methods/)
 
-## Trusted Issuer Registry (TIR)
+## OpenID Federation
 
-The TIR answers a critical question: **who is authorised to issue which types of credentials?**
+The OpenID Federation answers a critical question: **who is authorised to issue which types of credentials?**
 
 It's a public, version-controlled JSON file that maps issuer DIDs to the entity types and data paths they can credential. Each entry specifies:
 
@@ -95,9 +95,9 @@ It's a public, version-controlled JSON file that maps issuer DIDs to the entity 
 - Status (active, planned, deprecated, revoked)
 - Proxy relationships (which root issuer a proxy is acting on behalf of)
 
-Verifiers check the TIR as part of credential verification — confirming not just that the signature is valid, but that the issuer is authorised for this specific type of data.
+Verifiers check the OpenID Federation as part of credential verification — confirming not just that the signature is valid, but that the issuer is authorised for this specific type of data.
 
-[Read the TIR specification →](/web/specs/04-trusted-issuer-registry/)
+[Read the OpenID Federation specification →](/web/specs/04-trusted-issuer-registry/)
 
 ## Trust evolution
 
@@ -109,7 +109,7 @@ A small number of organisations act as trusted proxies. They connect to existing
 
 ### Phase 2: Independent adapters
 
-Third-party organisations build and host their own adapters, each independently registered in the TIR. Multiple issuers per credential type. No single point of failure.
+Third-party organisations build and host their own adapters, each independently registered in the OpenID Federation. Multiple issuers per credential type. No single point of failure.
 
 ### Phase 3: Primary source issuers
 
@@ -148,7 +148,7 @@ The complete PDTF 2.0 specification is organised into focused sub-specifications
 | [01](/web/specs/01-entity-graph/) | Entity Graph & Schema | Entity definitions, schemas, field mapping |
 | [02](/web/specs/02-vc-data-model/) | VC Data Model | Credential format, evidence, terms of use |
 | [03](/web/specs/03-did-methods/) | DID Methods & Identifiers | `did:key`, `did:web`, URN schemes |
-| [04](/web/specs/04-trusted-issuer-registry/) | Trusted Issuer Registry | Registry schema, trust levels, verification |
+| [04](/web/specs/04-trusted-issuer-registry/) | OpenID Federation | Registry schema, trust levels, verification |
 | [06](/web/specs/06-key-management/) | Key Management | Key generation, storage, rotation |
 | [07](/web/specs/07-state-assembly/) | State Assembly | Graph composition, v3 compatibility |
 | [13](/web/specs/13-reference-implementations/) | Reference Implementations | Package architecture, CLI tools |

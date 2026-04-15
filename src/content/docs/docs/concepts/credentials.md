@@ -88,6 +88,6 @@ That gives two essential checks:
 
 ## Why this matters
 
-PDTF 2.0 credentials turn property data into something that can move safely between platforms, APIs, and agents without losing provenance. A verifier no longer needs to trust Moverly, LMS, or any other intermediary just because they served the JSON. It verifies the credential itself, checks the issuer in the Trusted Issuer Registry, and decides on that basis.
+PDTF 2.0 credentials turn property data into something that can move safely between platforms, APIs, and agents without losing provenance. A verifier no longer needs to trust Moverly, LMS, or any other intermediary just because they served the JSON. It verifies the credential itself, checks the issuer in the OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`), and decides on that basis.
 
 That is the core trust shift in PDTF 2.0: **make trust portable, by verifying the credential itself**.
