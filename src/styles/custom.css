@@ -407,28 +407,45 @@ header.header {
 }
 
 /* ──────────── Splash page texture ──────────── */
-/* Subtle entity-graph SVG behind the splash content — scattered nodes
-   connected by thin lines, evoking the PDTF entity graph. Fades out
-   toward the bottom so it doesn't compete with content sections. */
+/* Subtle entity-graph SVG behind the splash content. We use mask-image
+   (not background-image) so the SVG's alpha defines what gets painted,
+   and we choose the colour via background-color. This works identically
+   in Chrome, Safari, and Firefox — no browser-specific currentColor
+   inheritance needed.
+
+   We layer two masks: the entity graph itself, and a top-to-bottom fade
+   so the texture dies away as you scroll past the hero. */
 html[data-has-hero] body::before {
 	content: '';
 	position: fixed;
 	inset: 0;
 	pointer-events: none;
 	z-index: 0;
-	background-image: url('/web/entity-graph.svg');
-	background-size: cover;
-	background-position: center top;
-	background-repeat: no-repeat;
-	color: #1b396d; /* the SVG inherits via currentColor through `color`, but on body::before currentColor is body text colour */
-	/* Apply colour by tinting the (currentColor-based) SVG via mask + bg below. */
-	opacity: 0.7;
-	-webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0) 90%);
-	mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0) 90%);
+	background-color: #1b396d; /* brand navy — painted through the mask */
+	opacity: 0.18;
+
+	/* Mask 1: the entity-graph SVG. Mask 2: the vertical fade.
+	   When using multiple masks, only pixels where ALL masks are opaque
+	   render — so we get the graph shape, faded toward the bottom. */
+	-webkit-mask-image:
+		url('/web/entity-graph.svg'),
+		linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.7) 50%, transparent 90%);
+	mask-image:
+		url('/web/entity-graph.svg'),
+		linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.7) 50%, transparent 90%);
+	-webkit-mask-size: cover, 100% 100%;
+	mask-size: cover, 100% 100%;
+	-webkit-mask-position: center top, center top;
+	mask-position: center top, center top;
+	-webkit-mask-repeat: no-repeat, no-repeat;
+	mask-repeat: no-repeat, no-repeat;
+	-webkit-mask-composite: source-in;        /* Safari */
+	mask-composite: intersect;                /* Standard */
 }
 
 :root[data-theme='dark'] html[data-has-hero] body::before {
-	opacity: 0.4;
+	background-color: #b9bbc6; /* light grey on dark backgrounds */
+	opacity: 0.10;
 }
 
 /* ──────────── Hero (splash) page ──────────── */
