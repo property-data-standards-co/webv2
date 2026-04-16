@@ -323,27 +323,87 @@ header.header {
 
 /* ──────────── Cards (used on home page) ──────────── */
 .card {
+	position: relative;
+	overflow: hidden;
 	border-radius: var(--sl-radius-medium) !important;
 	border: 1px solid var(--sl-color-hairline) !important;
 	background: var(--sl-color-bg) !important;
+	padding: 1.5rem !important;
 	box-shadow:
 		0 0 0 0.0625rem rgba(14, 63, 126, 0.04),
 		0 1px 1px -0.5px rgba(42, 51, 69, 0.04),
 		0 3px 3px -1.5px rgba(42, 51, 70, 0.04),
 		0 6px 6px -3px rgba(42, 51, 70, 0.04),
 		0 12px 12px -6px rgba(14, 63, 126, 0.04);
-	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+	transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Subtle gradient accent strip on the top of each card */
+.card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, var(--sl-color-accent), #1b396d);
+	opacity: 0.7;
+	transition: opacity 0.3s ease;
 }
 
 .card:hover {
 	border-color: var(--sl-color-hairline-shade) !important;
+	transform: translateY(-2px);
 	box-shadow:
 		0 0 0 0.0625rem rgba(14, 63, 126, 0.06),
-		0 6px 24px -4px rgba(14, 63, 126, 0.08);
+		0 8px 24px -4px rgba(14, 63, 126, 0.10),
+		0 16px 40px -8px rgba(14, 63, 126, 0.06);
+}
+
+.card:hover::before {
+	opacity: 1;
+}
+
+.card .title {
+	font-weight: 600;
+	color: var(--sl-color-text);
+	font-size: 1.0625rem;
+	letter-spacing: -0.02em;
 }
 
 .card .icon {
+	color: #1b396d;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: var(--sl-radius-small);
+	background: rgba(27, 57, 109, 0.08);
+	padding: 0.5rem;
+}
+
+:root[data-theme='dark'] .card .icon {
+	color: #6b8fc8;
+	background: rgba(107, 143, 200, 0.12);
+}
+
+.card .body {
+	color: var(--sl-color-text-accent);
+	font-size: 0.9375rem;
+	line-height: 1.55;
+}
+
+.card .body p:last-child a {
+	display: inline-block;
+	margin-top: 0.5rem;
 	color: var(--sl-color-accent);
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.card .body p:last-child a:hover {
+	text-decoration: underline;
 }
 
 /* ──────────── Hero (splash) page ──────────── */
@@ -357,14 +417,27 @@ header.header {
 	padding-bottom: 4rem;
 }
 
-.hero > .stack,
-.hero > .copy {
+.hero .stack {
 	text-align: center;
 	align-items: center;
+	justify-content: center;
+	width: 100%;
+}
+
+.hero .copy {
+	text-align: center;
+	align-items: center;
+	width: 100%;
+}
+
+.hero .copy h1,
+.hero .copy .tagline {
+	text-align: center;
 }
 
 .hero .actions {
 	justify-content: center;
+	width: 100%;
 	flex-wrap: wrap;
 	gap: 0.75rem;
 	margin-top: 1.75rem;
@@ -449,14 +522,26 @@ header.header {
 	.hero::after { right: -6rem; }
 }
 
-/* ──────────── Banner (e.g. candidate spec) ──────────── */
+/* ──────────── Banner: Proposed Specification ──────────── */
 .candidate-banner.sl-banner {
-	background: var(--sl-color-accent-low);
-	color: var(--sl-color-text);
-	border-bottom: 1px solid var(--sl-color-hairline);
-	font-size: 0.85rem;
-	letter-spacing: 0;
-	font-weight: 500;
+	background: #fff200;                       /* highlighter yellow */
+	color: #1e1f24;
+	border-bottom: 1px solid #e6c700;
+	font-size: 0.875rem;
+	letter-spacing: 0.01em;
+	font-weight: 600;
+	text-align: center;
+	padding: 0.625rem 1rem;
+}
+
+.candidate-banner.sl-banner strong {
+	font-weight: 700;
+}
+
+:root[data-theme='dark'] .candidate-banner.sl-banner {
+	background: #fff200;
+	color: #1e1f24;
+	border-bottom-color: #c9aa00;
 }
 
 /* ──────────── Pagination links (prev/next) ──────────── */
