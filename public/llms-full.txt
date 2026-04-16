@@ -86,22 +86,51 @@ The key shift is not "OIDC → DIDs" but **"platform-bound claims → portable c
 
 | Entity | Identifier | Schema | Description |
 |--------|-----------|--------|-------------|
-| **Transaction** | `did:web` | `v4/Transaction.json` | Metadata, status, dates, financial info. References Property and Titles. DID document hosts service endpoints. |
-| **Property** | `urn:pdtf:uprn:{uprn}` | `v4/Property.json` | Physical property: address, build info, features, energy, environmental, legal questions. All "property pack" data lives here. |
-| **Title** | `urn:pdtf:titleNumber:{number}` | `v4/Title.json` | Legal ownership: title number, extents (geoJSON), register extract, ownership type (freehold/leasehold), leasehold info. |
-| **Person** | `did:key` | `v4/Person.json` | Individual: name, contact, address, verification status. Role-free — role is contextual via SellerCapacity, Representation, or Offer. |
-| **Organisation** | `did:key` or `did:web` | `v4/Organisation.json` | Firm or company: conveyancer firm, estate agency, lender. Uses `did:key` when managed by an account provider (e.g. LMS) or `did:web` when self-hosting identity. |
-| **SellerCapacity** | URN (generated) | `v4/SellerCapacity.json` | Self-asserted claim of legal ownership linking a Person/Organisation DID to a Title URN. Starts as the owner's own assertion; verified against Title.registerExtract.proprietorship (claim-vs-evidence separation). The ownership claim establishes the right to sell. Revocable. |
-| **Representation** | URN (generated) | `v4/Representation.json` | Delegated authority to act on behalf of a seller or buyer. Typically issued to an Organisation (the firm), but supports Person holders too. Revocable. |
-| **DelegatedConsent** | URN (generated) | `v4/DelegatedConsent.json` | Authorised data access for entities like lenders. Part of terms of use for specific authorised entities (Q4.2 resolved via DelegatedConsentCredential). |
-| **Offer** | URN (generated) | `v4/Offer.json` (TBD) | Links buyer Person(s) or Organisation(s) to Transaction. Buyers participate only through Offers. Contains offer details, status, conditions. |
+| **Transaction** | `did:web` | `v4/Transaction.json` | The intent to sell. Metadata, status, dates, and financial context (`saleContext`). References exactly one Property and one or more Titles. DID document hosts service endpoints. |
+| **Property** | `urn:pdtf:uprn:{uprn}` | `v4/Property.json` | The physical land and buildings. Physical facts, construction, energy, environmental. Governed by the "logbook test" — only facts that survive the transaction belong here. |
+| **Title** | `urn:pdtf:titleNumber:{number}` | `v4/Title.json` | The legal right. Legal boundary, registered owner, tenure, charges. |
+| **Person** | `did:key` | `v4/Person.json` | A natural person (seller, buyer). |
+| **Organisation** | `did:key` or `did:web` | `v4/Organisation.json` | A company (conveyancer, estate agent, lender). Includes regulatory IDs (SRA, Companies House). |
+
+### 3.2 Relationship Entities (Thin Assertions)
+
+These are signed assertions expressing authority, intent, and process state. They contain minimal data beyond the relationship they describe.
+
+| Entity | Identifier | Schema | Description |
+|--------|-----------|--------|-------------|
+| **SellerCapacity** | URN (generated) | `v4/SellerCapacity.json` | A self-asserted claim linking a Person/Organisation to a Title ("this person is acting as registered owner/executor"). Starts as the owner's own assertion; verified against Title.registerExtract.proprietorship. Establishes right to sell. Revocable. |
+| **Representation** | URN (generated) | `v4/Representation.json` | Signed assertion linking a representative (Organisation) to a represented party (Person). Records the role (Conveyancer, Estate Agent, Mortgage Broker). Revocable. |
+| **DelegatedConsent** | URN (generated) | `v4/DelegatedConsent.json` | Signed permission granting read access to specific credentials. Typically issued by a buyer/seller to a third party (like a lender). |
+| **Offer** | URN (generated) | `v4/Offer.json` | The intent to buy. Links buyer(s) to a Transaction. Contains offer details, status, conditions. |
 | **Mortgage** | URN (generated) | Future | Tied to Offer/buyer. Flagged for growth — not in initial implementation. |
 
-### 3.2 Entity Relationship Diagram
+### 3.3 The Two Intents: Selling and Buying
 
-![PDTF 2.0 Entity Relationship Model](diagrams/entity-graph.png)
+A clear way of thinking about the graph architecture is through the lens of intent:
 
-### 3.3 Relationship Model
+1. **Transaction = Intent to Sell.** The `Transaction` entity represents the seller's active intent to sell the referenced `Property` and `Title`(s). 
+2. **Offer = Intent to Buy.** The `Offer` entity represents a buyer's intent to purchase them.
+
+**Relationship credentials orbit these intents:**
+- The Estate Agent and Seller's Conveyancer hold `Representation` credentials orbiting the **Transaction** (they are representing the intent to sell).
+- The Buyer's Conveyancer and Mortgage Broker hold `Representation` credentials orbiting the **Offer** (they are supporting the intent to buy).
+
+This cleanly partitions the entities. Buyers participate *only* through Offers until exchange of contracts.
+
+### 3.4 Access Control and Traversal
+
+Because relationships orbit the intent, the graph itself becomes the access control model. No central ACL is required.
+
+Consider a mortgage lender who needs to view the property data to issue a formal mortgage offer:
+1. **Decision in Principle:** The buyer holds a `MortgagePromise` VC issued by the lender. The buyer presents this to the agent as part of their `Offer`.
+2. **Traversal Authorisation:** If the offer is accepted, the lender needs to see the property data. They don't have a direct `Representation` credential (they aren't acting *for* the buyer, they are funding them). Instead, the buyer issues a `DelegatedConsent` credential to the lender.
+3. **Graph Resolution:** The `DelegatedConsent` acts as a capability token. The lender presents it to the agent's MCP server/adapter. The server validates the chain: "This lender holds consent from the buyer, who holds an accepted `Offer` on this `Transaction`." Therefore, the lender is authorised to traverse the transaction graph and read the `Property` and `Title` VCs.
+
+### 3.5 Entity Relationship Diagram
+
+![PDTF 2.0 Entity Relationship Model](/web/diagrams/entity-graph.png)
+
+### 3.6 Relationship Model
 
 The relationship is **Transaction-centric**, not Property → Title → Transaction. This matters because:
 - **Unregistered titles** exist — no title number, so no `urn:pdtf:titleNumber:*`. We need an identifier method for titles which are currently unregistered but for which title evidence is being gathered.
