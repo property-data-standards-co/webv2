@@ -1,21 +1,378 @@
-/* Candidate specification banner — shown on every page */
-.candidate-banner.sl-banner {
-	background: #f59e0b;
-	color: #1a1a1a;
-	font-size: 0.85rem;
-	letter-spacing: 0.02em;
+/* ─────────────────────────────────────────────────────────────────────────
+ * PDTF Site Theme
+ * Inspired by Fern's documentation aesthetic (buildwithfern.com).
+ * Uses open-source font equivalents for GT Planar / Berkeley Mono.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+/* Open-source font equivalents:
+ * Body / Headings: Inter (geometric sans-serif, similar feel to GT Planar)
+ * Mono: JetBrains Mono (high-quality coding monospace)
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ──────────── Color palette (Fern-inspired) ──────────── */
+:root {
+	/* Off-white backgrounds */
+	--sl-color-bg: #fcfcfd;                /* Fern radix-gray-1 */
+	--sl-color-bg-nav: #f9f9fb;            /* Fern radix-gray-2 */
+	--sl-color-bg-sidebar: #f9f9fb;
+	--sl-color-bg-inline-code: #eff0f3;    /* Fern radix-gray-3 */
+	--sl-color-bg-accent: #f9f9fb;
+
+	/* Dark text */
+	--sl-color-white: #1e1f24;             /* Fern brand-black (radix-gray-12) */
+	--sl-color-text: #1e1f24;
+	--sl-color-text-accent: #62636c;       /* Secondary text */
+	--sl-color-text-invert: #fcfcfd;
+	--sl-color-gray-1: #1e1f24;
+	--sl-color-gray-2: #303136;
+	--sl-color-gray-3: #62636c;
+	--sl-color-gray-4: #80828d;
+	--sl-color-gray-5: #b9bbc6;
+	--sl-color-gray-6: #d8d9e0;
+	--sl-color-gray-7: #e7e8ec;
+
+	/* Borders */
+	--sl-color-hairline: #e7e8ec;
+	--sl-color-hairline-light: #eff0f3;
+	--sl-color-hairline-shade: #d8d9e0;
+
+	/* Accent colour — using a deep green that reads as "trust/verified",
+	   matching Fern's approach but tuned to property/data context */
+	--sl-color-accent: #008700;            /* Fern brand-green */
+	--sl-color-accent-high: #0b7a0b;
+	--sl-color-accent-low: #f3fcf1;        /* radix-green-2 (subtle bg) */
+
+	--sl-color-bg-code: #1e1f24;
+	--sl-color-bg-code-block: #1e1f24;
+	--sl-color-bg-shaded: #f9f9fb;
+
+	/* Typography */
+	--sl-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+	--sl-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+	/* Type scale (matches Fern's desktop sizes) */
+	--sl-text-h1: 3rem;          /* Fern h1 */
+	--sl-text-h2: 2rem;          /* Fern h2 */
+	--sl-text-h3: 1.5rem;        /* Fern h3 */
+	--sl-text-h4: 1.25rem;       /* Fern h4 */
+	--sl-text-h5: 1rem;
+	--sl-text-body: 1rem;
+	--sl-text-body-sm: 0.875rem;
+	--sl-text-code-sm: 0.875rem;
+	--sl-text-code: 0.9375rem;
+
+	/* Line heights */
+	--sl-line-height: 1.65;
+	--sl-line-height-headings: 1.2;
+
+	/* Letter spacing */
+	--sl-letter-spacing-headings: -0.04em;
+	--sl-letter-spacing-body: -0.01em;
+
+	/* Spacing & radii */
+	--sl-content-pad-x: 2rem;
+	--sl-content-width: 50rem;
+	--sl-sidebar-width: 17rem;
+	--sl-sidebar-pad-x: 1rem;
+	--sl-nav-height: 4rem;
+
+	--sl-radius-small: 0.375rem;
+	--sl-radius-regular: 0.625rem;
+	--sl-radius-medium: 0.75rem;
+	--sl-radius-large: 1rem;
 }
 
-/* Fix for tables overlapping the right sidebar */
+/* Dark mode — Fern's dark variant */
+:root[data-theme='dark'] {
+	--sl-color-bg: #111113;                /* radix-gray-13 */
+	--sl-color-bg-nav: #1e1f24;
+	--sl-color-bg-sidebar: #1e1f24;
+	--sl-color-bg-inline-code: #303136;
+	--sl-color-bg-accent: #1e1f24;
+	--sl-color-bg-shaded: #1e1f24;
+
+	--sl-color-white: #fcfcfd;
+	--sl-color-text: #eff0f3;
+	--sl-color-text-accent: #b9bbc6;
+	--sl-color-text-invert: #1e1f24;
+
+	--sl-color-gray-1: #fcfcfd;
+	--sl-color-gray-2: #eff0f3;
+	--sl-color-gray-3: #b9bbc6;
+	--sl-color-gray-4: #80828d;
+	--sl-color-gray-5: #62636c;
+	--sl-color-gray-6: #404147;
+	--sl-color-gray-7: #303136;
+
+	--sl-color-hairline: #303136;
+	--sl-color-hairline-light: #222325;
+	--sl-color-hairline-shade: #404147;
+
+	--sl-color-accent: #51c233;            /* radix-green-8 (brighter on dark) */
+	--sl-color-accent-high: #70e155;
+	--sl-color-accent-low: #0e2d05;
+
+	--sl-color-bg-code: #1e1f24;
+	--sl-color-bg-code-block: #1e1f24;
+}
+
+/* ──────────── Typography refinements ──────────── */
+html, body {
+	font-family: var(--sl-font);
+	letter-spacing: var(--sl-letter-spacing-body);
+	font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; /* Inter stylistic alternates */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.sl-markdown-content {
+	font-size: var(--sl-text-body);
+	line-height: var(--sl-line-height);
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6 {
+	font-family: var(--sl-font);
+	letter-spacing: var(--sl-letter-spacing-headings);
+	line-height: var(--sl-line-height-headings);
+	font-weight: 600;
+}
+
+.sl-markdown-content h1 { font-weight: 700; }
+.sl-markdown-content h2 { font-weight: 600; margin-top: 2.5rem; }
+.sl-markdown-content h3 { font-weight: 600; margin-top: 2rem; }
+
+/* Lead paragraph spacing */
+.sl-markdown-content > p:first-of-type {
+	font-size: 1.125rem;
+	color: var(--sl-color-text-accent);
+	line-height: 1.6;
+}
+
+/* ──────────── Code blocks ──────────── */
+.sl-markdown-content :not(pre) > code {
+	font-family: var(--sl-font-mono);
+	font-size: 0.875em;
+	padding: 0.125rem 0.375rem;
+	border-radius: var(--sl-radius-small);
+	background: var(--sl-color-bg-inline-code);
+	border: 1px solid var(--sl-color-hairline);
+	color: var(--sl-color-text);
+}
+
+.sl-markdown-content pre {
+	font-family: var(--sl-font-mono);
+	border-radius: var(--sl-radius-medium);
+	border: 1px solid var(--sl-color-hairline-shade);
+	font-size: var(--sl-text-code-sm);
+	line-height: 1.6;
+}
+
+.expressive-code .frame {
+	border-radius: var(--sl-radius-medium) !important;
+	border: 1px solid var(--sl-color-hairline-shade) !important;
+	box-shadow:
+		0 0 0 0.0625rem rgba(14, 63, 126, 0.04),
+		0 1px 1px -0.5px rgba(42, 51, 69, 0.04),
+		0 3px 3px -1.5px rgba(42, 51, 70, 0.04),
+		0 6px 6px -3px rgba(42, 51, 70, 0.04),
+		0 12px 12px -6px rgba(14, 63, 126, 0.04);
+}
+
+/* ──────────── Header / Navigation ──────────── */
+header.header {
+	background: rgba(252, 252, 253, 0.72);
+	-webkit-backdrop-filter: blur(0.5rem);
+	backdrop-filter: blur(0.5rem);
+	border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+:root[data-theme='dark'] header.header {
+	background: rgba(17, 17, 19, 0.72);
+}
+
+.site-title {
+	font-weight: 700;
+	letter-spacing: var(--sl-letter-spacing-headings);
+}
+
+/* ──────────── Sidebar ──────────── */
+.sidebar {
+	font-size: 0.875rem;
+}
+
+.sidebar nav a {
+	border-radius: var(--sl-radius-small);
+	color: var(--sl-color-gray-3);
+	font-weight: 400;
+	padding: 0.4rem 0.65rem;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar nav a:hover {
+	background: var(--sl-color-hairline-light);
+	color: var(--sl-color-text);
+}
+
+.sidebar nav a[aria-current='page'] {
+	background: transparent;
+	color: var(--sl-color-text);
+	font-weight: 600;
+}
+
+.sidebar .group-label .large {
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--sl-color-text-accent);
+}
+
+/* ──────────── Buttons / Pills (Fern-style) ──────────── */
+.sl-link-button.primary {
+	background: var(--sl-color-accent);
+	color: #ffffff;
+	border: 1px solid var(--sl-color-accent);
+	border-radius: var(--sl-radius-small);
+	font-weight: 500;
+	letter-spacing: 0;
+	box-shadow:
+		0 1.5em 1.375em 0 rgba(0, 135, 0, 0.04),
+		0 0.5em 0.5em rgba(0, 135, 0, 0.06),
+		0 0.25em 0.25em rgba(0, 135, 0, 0.07);
+	transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.sl-link-button.primary:hover {
+	background: var(--sl-color-accent-high);
+	border-color: var(--sl-color-accent-high);
+}
+
+.sl-link-button.secondary {
+	color: var(--sl-color-text);
+	background: var(--sl-color-bg);
+	border: 1px solid var(--sl-color-text);
+	border-radius: var(--sl-radius-small);
+	font-weight: 500;
+}
+
+.sl-link-button.secondary:hover {
+	background: var(--sl-color-bg-shaded);
+}
+
+/* ──────────── Tables ──────────── */
 .sl-markdown-content table {
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
+	display: block;
+	overflow-x: auto;
+	border-collapse: collapse;
+	font-size: 0.9375rem;
+	border: 1px solid var(--sl-color-hairline);
+	border-radius: var(--sl-radius-medium);
 }
 
-/* Allow normal text wrapping inside table cells if the white-space: nowrap creates too long rows */
 .sl-markdown-content table th,
 .sl-markdown-content table td {
-  white-space: normal;
-  min-width: 150px;
+	white-space: normal;
+	min-width: 120px;
+	padding: 0.625rem 0.875rem;
+	border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content table th {
+	background: var(--sl-color-bg-shaded);
+	font-weight: 600;
+	text-align: left;
+	color: var(--sl-color-text);
+}
+
+/* ──────────── Cards (used on home page) ──────────── */
+.card {
+	border-radius: var(--sl-radius-medium) !important;
+	border: 1px solid var(--sl-color-hairline) !important;
+	background: var(--sl-color-bg) !important;
+	box-shadow:
+		0 0 0 0.0625rem rgba(14, 63, 126, 0.04),
+		0 1px 1px -0.5px rgba(42, 51, 69, 0.04),
+		0 3px 3px -1.5px rgba(42, 51, 70, 0.04),
+		0 6px 6px -3px rgba(42, 51, 70, 0.04),
+		0 12px 12px -6px rgba(14, 63, 126, 0.04);
+	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card:hover {
+	border-color: var(--sl-color-hairline-shade) !important;
+	box-shadow:
+		0 0 0 0.0625rem rgba(14, 63, 126, 0.06),
+		0 6px 24px -4px rgba(14, 63, 126, 0.08);
+}
+
+.card .icon {
+	color: var(--sl-color-accent);
+}
+
+/* ──────────── Hero (splash) page ──────────── */
+.hero h1 {
+	font-size: 4rem;
+	font-weight: 700;
+	letter-spacing: -0.04em;
+	line-height: 1.1;
+	background: linear-gradient(180deg, var(--sl-color-text) 60%, rgba(30, 31, 36, 0.7));
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.hero .tagline {
+	font-size: 1.375rem;
+	color: var(--sl-color-text-accent);
+	font-weight: 300;
+	max-width: 36rem;
+	letter-spacing: -0.01em;
+}
+
+@media (max-width: 768px) {
+	.hero h1 { font-size: 2.75rem; }
+	.hero .tagline { font-size: 1.125rem; }
+}
+
+/* ──────────── Banner (e.g. candidate spec) ──────────── */
+.candidate-banner.sl-banner {
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-text);
+	border-bottom: 1px solid var(--sl-color-hairline);
+	font-size: 0.85rem;
+	letter-spacing: 0;
+	font-weight: 500;
+}
+
+/* ──────────── Pagination links (prev/next) ──────────── */
+.pagination-links a {
+	border-radius: var(--sl-radius-medium);
+	border: 1px solid var(--sl-color-hairline);
+	background: var(--sl-color-bg);
+	transition: border-color 0.2s, background-color 0.2s;
+}
+
+.pagination-links a:hover {
+	border-color: var(--sl-color-hairline-shade);
+	background: var(--sl-color-bg-shaded);
+}
+
+/* ──────────── Right sidebar (table of contents) ──────────── */
+.right-sidebar nav a {
+	font-size: 0.8125rem;
+	color: var(--sl-color-gray-4);
+	padding: 0.25rem 0.5rem;
+	border-radius: var(--sl-radius-small);
+}
+
+.right-sidebar nav a[aria-current='true'] {
+	color: var(--sl-color-text);
+	background: var(--sl-color-bg-shaded);
+	font-weight: 500;
 }
