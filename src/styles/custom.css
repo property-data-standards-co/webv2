@@ -613,9 +613,12 @@ html[data-has-hero] body::before {
 	border-bottom: 1px solid #e6c700;
 	font-size: 0.875rem;
 	letter-spacing: 0.01em;
-	font-weight: 600;
 	text-align: center;
 	padding: 0.625rem 1rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.125rem;
 }
 
 .candidate-banner.sl-banner strong {

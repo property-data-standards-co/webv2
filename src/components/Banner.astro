@@ -4,7 +4,8 @@ const { banner } = Astro.locals.starlightRoute.entry.data;
 ---
 
 <div class="sl-banner candidate-banner" data-pagefind-ignore>
-	⚠️ <strong>Proposed Specification for Review</strong> — We are currently seeking feedback on key architectural choices. Please review the <a href="/web/consultation/" style="color: inherit; text-decoration: underline;">Industry Consultation</a>.
+	<div style="font-weight: 600; margin-bottom: 0.25rem;">⚠️ Proposed Specification for Review</div>
+	<div style="font-size: 0.85em; opacity: 0.9;">We are currently seeking feedback on key architectural choices. Please review the <a href="/web/consultation/" style="color: inherit; text-decoration: underline;">Industry Consultation</a>.</div>
 </div>
 
 {banner && <div class="sl-banner" data-pagefind-ignore set:html={banner.content} />}
