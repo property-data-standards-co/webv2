@@ -70,11 +70,11 @@ The Transaction uses `did:web` as its identifier, which means it has a resolvabl
 
 ### Relationship entities: thin and revocable
 
-The four relationship entities — SellerCapacity, Representation, DelegatedConsent, and Offer — are deliberately **thin**. They contain just enough data to express the relationship:
+The four relationship entities — SellerCapacity, Representation, DelegatedConsent, and Offer — orbit these intents:
 
-- **SellerCapacity**: "Person X owns Title Y" (with verification level)
-- **Representation**: "Person X has instructed Organisation Y" (with scope)
-- **Offer**: "Person X offers £N on Transaction Y" (with conditions)
+- **SellerCapacity**: "Person X asserts right to sell Title Y" (with verification level)
+- **Representation**: "Firm X represents Person Y on this intent"
+- **Offer**: "Person X intends to buy Transaction Y for £N" (with conditions)
 - **DelegatedConsent**: "Entity X may access data of type Y" (with constraints)
 
 Each is a separate Verifiable Credential, independently revocable. When a client changes solicitor, the old Representation credential is revoked and a new one issued. When property changes hands, the SellerCapacity credential is revoked. Clean, auditable, verifiable.
