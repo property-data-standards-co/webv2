@@ -1,105 +1,152 @@
 ---
-title: "OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`)"
-description: "How the OpenID Federation governs who can issue which credentials"
+title: "OpenID Federation"
+description: "How PDTF uses OpenID Federation to establish who can issue which property credentials"
 ---
 
-The **OpenID Federation** is the policy layer of PDTF 2.0. A valid signature tells you *who* signed a credential. The OpenID Federation tells you whether that issuer is actually **authorised** to make that kind of claim.
+**OpenID Federation** is an [OpenID standard](https://openid.net/specs/openid-federation-1_0.html) that lets organisations establish trust relationships without pre-shared secrets or centralised directories. PDTF 2.0 uses it as the backbone for deciding which data sources and adapters are authorised to issue property credentials.
 
-## Why the OpenID Federation exists
+If Verifiable Credentials answer *"was this data tampered with?"*, OpenID Federation answers *"should I trust the organisation that issued it?"*
 
-Anyone can generate a DID and sign JSON. That is not enough.
+## The core idea: trust chains
 
-For example, a credential claiming title-register data should only be trusted if the issuer is recognised for the relevant **entity and path**, such as:
+OpenID Federation works through **trust chains** — a sequence of signed statements that link an organisation back to a known authority.
 
-- `Title:/registerExtract/*`
-- `Title:/ownership/*`
+Every participant in the federation publishes a **federation entity statement** — a signed JSON document at a well-known URL that describes who they are and what they do. A **Trust Anchor** (the top of the chain) signs **subordinate statements** about entities it trusts. Those statements can be chained — the anchor trusts an intermediate, the intermediate trusts a leaf — forming a verifiable path from any participant back to the root.
 
-The OpenID Federation is how verifiers distinguish between:
+```
+Trust Anchor (propdata.org.uk)
+  └─ Subordinate: Moverly HMLR Adapter
+  └─ Subordinate: Moverly EPC Adapter
+  └─ Subordinate: LMS Title Adapter
+```
 
-- a genuine root issuer
-- a trusted proxy adapter
-- an unrelated signer with no authority
+Each link in the chain is a signed JWT. A verifier walks the chain from bottom to top, checking signatures at each step. If the chain terminates at a Trust Anchor the verifier recognises, the entity is trusted.
 
-## What the OpenID Federation contains
+## How it works in PDTF
 
-The registry is a public, version-controlled JSON document. It records:
+In the PDTF ecosystem:
 
-- issuer name
-- issuer DID
-- authorised entity:path combinations
-- trust level
-- lifecycle status
-- optional metadata such as contact details
+- **Trust Anchor**: `propdata.org.uk` operates the federation Trust Anchor. It publishes its own entity statement at `https://propdata.org.uk/.well-known/openid-federation` and signs subordinate statements for authorised adapters.
+- **Subordinate entities**: Each adapter (e.g. Moverly's HMLR proxy, an EPC adapter) publishes its own entity statement and is referenced by a subordinate statement from the Trust Anchor.
+- **Trust Marks**: The Trust Anchor issues **Property Trust Marks** — signed tokens that declare what an entity is authorised to do.
 
-It also separately records **user account providers** that issue trusted user identities.
+### Entity statements
 
-## Entity:path authorisation
+An entity statement is a signed JWT published at `{entity_url}/.well-known/openid-federation`. It contains:
 
-A core PDTF design choice is that trust is not granted at whole-issuer level. It is granted at **entity:path** level.
-
-Example:
+- **`iss`** — who issued the statement (the entity itself for self-signed, or the superior for subordinate statements)
+- **`sub`** — the entity being described
+- **`jwks`** — the entity's public keys
+- **`metadata`** — what the entity does (e.g. credential issuer metadata, federation entity metadata)
+- **`trust_marks`** — the Trust Marks this entity holds
 
 ```json
 {
-  "name": "Moverly (HMLR Proxy)",
-  "did": "did:web:adapters.propdata.org.uk:hmlr",
-  "authorisedPaths": [
-    "Title:/titleNumber",
-    "Title:/titleExtents",
-    "Title:/registerExtract/*",
-    "Title:/ownership/*"
-  ],
-  "trustLevel": "trustedProxy",
-  "proxyFor": "hmlr",
-  "status": "active"
+  "iss": "https://adapters.propdata.org.uk/hmlr",
+  "sub": "https://adapters.propdata.org.uk/hmlr",
+  "jwks": { "keys": [{ "kty": "OKP", "crv": "Ed25519", "..." : "..." }] },
+  "metadata": {
+    "federation_entity": {
+      "organization_name": "Moverly HMLR Adapter",
+      "homepage_uri": "https://moverly.com"
+    },
+    "openid_credential_issuer": {
+      "credential_configurations_supported": { "..." : "..." }
+    }
+  },
+  "trust_marks": [
+    { "id": "https://propdata.org.uk/trust-marks/title-data-provider", "trust_mark": "eyJ..." }
+  ]
 }
 ```
 
-That means the issuer is trusted only for those title-related claims, not for unrelated Property or Transaction data.
+## Property Trust Marks
 
-## Trust levels
+A **Trust Mark** is a signed JWT issued by the Trust Anchor that declares an entity's authorisation. Think of it like a digital badge — *"this adapter is an authorised title data provider"*.
 
-PDTF currently recognises three main trust roles:
+Each Property Trust Mark contains:
 
-- **`rootIssuer`**: the primary authoritative source
-- **`trustedProxy`**: an intermediary adapter issuing faithfully from a primary source
-- **`accountProvider`**: a platform trusted to issue or manage user DIDs
+| Field | Purpose | Example |
+|---|---|---|
+| `id` | The trust mark type URI | `https://propdata.org.uk/trust-marks/title-data-provider` |
+| `iss` | The Trust Anchor that issued it | `https://propdata.org.uk` |
+| `sub` | The entity it's issued to | `https://adapters.propdata.org.uk/hmlr` |
+| `iat` / `exp` | When issued and when it expires | Standard JWT timestamps |
+| `trust_level` | Root issuer or trusted proxy | `trustedProxy` |
+| `authorised_paths` | Which entity:path combos the entity can issue credentials for | `["Title:/registerExtract/*", "Title:/ownership/*"]` |
 
-This supports PDTF's three-phase trust evolution:
+### Current Property Trust Marks
 
-1. trusted proxies today
-2. more independently hosted adapters
-3. eventual primary-source issuance
+| Trust Mark ID | Purpose |
+|---|---|
+| `title-data-provider` | Authorised to issue Title credentials (register extracts, ownership, title extents) |
+| `property-data-provider` | Authorised to issue Property credentials (EPC, flood risk, council tax, etc.) |
+| `regulated-conveyancer` | Authorised to act as a conveyancer in transactions (representation, delegated consent) |
+| `account-provider` | Authorised to issue user and organisation DIDs |
 
-## How verification uses the OpenID Federation
+Trust marks are **scoped** — holding `title-data-provider` doesn't grant authority over Property data, and vice versa. The `authorised_paths` field narrows trust even further:
 
-A verifier should not stop after checking the credential signature. It should also:
+```json
+{
+  "id": "https://propdata.org.uk/trust-marks/property-data-provider",
+  "sub": "https://adapters.propdata.org.uk/epc",
+  "trust_level": "trustedProxy",
+  "authorised_paths": ["Property:/energyEfficiency/*"]
+}
+```
 
-1. resolve the issuer DID
-2. verify the credential proof
-3. load the OpenID Federation
-4. find the issuer entry
-5. confirm the issuer is active
-6. confirm the issuer is authorised for the credential's entity paths
+This adapter is trusted only for EPC data — not flood, not council tax, not anything else on the Property entity.
 
-Only then should the claim be treated as trusted.
+## How verification works
 
-## Why GitHub-based governance
+When a verifier receives a credential, the trust check follows this sequence:
 
-The OpenID Federation is designed as a public GitHub repository rather than a hidden service. That gives:
+1. **Resolve the issuer's entity statement** — fetch from `{issuer_url}/.well-known/openid-federation`
+2. **Build the trust chain** — follow the chain of subordinate statements up to the Trust Anchor
+3. **Validate signatures** — every statement in the chain must be properly signed
+4. **Check the Trust Mark** — find the relevant trust mark for the credential type
+5. **Verify path authorisation** — confirm the trust mark's `authorised_paths` cover the credential's data paths
+6. **Check status** — ensure the trust mark hasn't expired or been revoked
 
-- version history
-- visible change control
-- easy review through pull requests
-- straightforward machine access
-- simple caching and mirroring
+```typescript
+import { FederationRegistryResolver } from '@pdtf/core';
 
-That is a good fit for trust infrastructure, where transparency matters as much as uptime.
+const resolver = new FederationRegistryResolver({
+  trustAnchors: ['https://propdata.org.uk'],
+});
 
-## Why it matters
+const trustResult = await resolver.verifyIssuer({
+  issuerUrl: 'https://adapters.propdata.org.uk/epc',
+  credentialPaths: ['Property:/energyEfficiency/*'],
+});
 
-The OpenID Federation is what makes federation workable. It decouples **cryptographic identity** from **domain authority**.
+if (!trustResult.trusted) {
+  console.error('Untrusted issuer:', trustResult.reason);
+}
+```
 
-A verifier does not need to hardcode trust in Moverly, LMS, HMLR, or any future adapter. It checks the issuer's DID, then checks the OpenID Federation to see whether that issuer is trusted for the exact claims being made.
+## Why this matters for property
 
-That is the missing layer between "signed" and "authoritative", and it is essential to PDTF 2.0's trust model.
+OpenID Federation isn't just a PDTF invention — it's a standard being adopted across several adjacent ecosystems:
+
+- **UK Smart Data** — the government's initiative for portable, verified data across sectors (energy, telecoms, finance, property)
+- **GOV.UK Wallet** — the upcoming UK digital identity wallet will use OpenID Federation for trust establishment
+- **EUDI Wallet** — the EU Digital Identity framework uses the same trust chain model
+
+By building on OpenID Federation now, PDTF credentials will be verifiable by wallets and systems that don't know anything about property — they just need to recognise the Trust Anchor. A conveyancer's wallet app, a mortgage lender's system, or a government portal can all verify the same credential using the same trust chain.
+
+This is the difference between building a proprietary trust system that only works within PDTF, and building on an open standard that interoperates with the wider digital identity ecosystem.
+
+## Relationship to the old TIR
+
+Earlier PDTF documentation described a **Trusted Issuer Registry (TIR)** — a static JSON file listing authorised issuers. OpenID Federation replaces this with a dynamic, standards-based approach:
+
+| Aspect | Old TIR | OpenID Federation |
+|---|---|---|
+| Format | Static JSON file in a Git repo | Signed JWTs at well-known URLs |
+| Trust establishment | Manual review of the JSON | Cryptographic trust chains |
+| Revocation | Change status in JSON and push | Revoke the trust mark or subordinate statement |
+| Interoperability | PDTF-specific | Standard across digital identity ecosystems |
+| Discovery | Fetch a known URL | Automatic via `.well-known/openid-federation` |
+
+The `@pdtf/core` library abstracts this — `FederationRegistryResolver` handles trust chain resolution, trust mark verification, and path authorisation checks behind the same `verifyIssuer` interface.

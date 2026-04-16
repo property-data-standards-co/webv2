@@ -86,8 +86,23 @@ That gives two essential checks:
 1. **Was it really signed by the issuer?**
 2. **Is it still current and not revoked?**
 
+## Credential exchange protocols
+
+The credential format (W3C VC) defines what a credential looks like. But how do credentials actually move between systems?
+
+PDTF uses the **OpenID for Verifiable Credentials** protocol family:
+
+- **OID4VCI** (Verifiable Credential Issuance) — how an adapter issues a signed credential to a wallet or platform. For example, the EPC adapter uses OID4VCI to deliver an energy credential to a seller's custodial wallet.
+- **OID4VP** (Verifiable Presentations) — how a verifier requests and receives credentials. A buyer's conveyancer uses OID4VP to request title credentials, receiving them as a signed Verifiable Presentation.
+
+Both protocols run on top of **FAPI 2.0** — a hardened OAuth 2.0 profile with DPoP token binding, pushed authorisation requests, and strong client authentication. This is the same security model used by UK Open Banking.
+
+For participants who don't have a mobile wallet app, PDTF supports **custodial cloud wallets** — server-side wallets operated by platforms on behalf of users. The exchange protocols are identical; only the wallet location differs.
+
+→ [Read more about credential exchange protocols](/web/docs/concepts/oid4vc/)
+
 ## Why this matters
 
-PDTF 2.0 credentials turn property data into something that can move safely between platforms, APIs, and agents without losing provenance. A verifier no longer needs to trust Moverly, LMS, or any other intermediary just because they served the JSON. It verifies the credential itself, checks the issuer in the OpenID Federation (relying on Trust Anchors, Federation Entity Statements, and Property Trust Marks like `title-data-provider` and `regulated-conveyancer`), and decides on that basis.
+PDTF 2.0 credentials turn property data into something that can move safely between platforms, APIs, and agents without losing provenance. A verifier no longer needs to trust Moverly, LMS, or any other intermediary just because they served the JSON. It verifies the credential itself, checks the issuer's [federation trust mark](/web/docs/concepts/openid-federation/), and decides on that basis.
 
 That is the core trust shift in PDTF 2.0: **make trust portable, by verifying the credential itself**.
