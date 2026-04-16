@@ -54,7 +54,7 @@ This document is the master reference for the PDTF 2.0 implementation. It links 
 
 ### 3.2 Entity Relationship Diagram
 
-![PDTF 2.0 Entity Relationship Model](/web/specs/diagrams/entity-graph.png/)
+![PDTF 2.0 Entity Relationship Model](/web/diagrams/entity-graph.png)
 
 ### 3.3 Relationship Model
 

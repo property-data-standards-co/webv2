@@ -59,11 +59,13 @@ done
 # NOTE: impl specs are deliberately excluded from the published site.
 # They are internal implementation docs, not for public consumption.
 
-# Sync diagrams
+# Sync diagrams — published to /public so they're served as static assets,
+# not just stored alongside the markdown source where Astro won't serve them.
 if [ -d "$SPEC_DIR/diagrams" ]; then
   echo "📊 Syncing diagrams..."
-  mkdir -p "$CONTENT_DIR/diagrams"
-  cp -r "$SPEC_DIR/diagrams/"* "$CONTENT_DIR/diagrams/" 2>/dev/null || true
+  PUBLIC_DIAGRAMS="$(dirname "$0")/../public/diagrams"
+  mkdir -p "$PUBLIC_DIAGRAMS"
+  cp -r "$SPEC_DIR/diagrams/"* "$PUBLIC_DIAGRAMS/" 2>/dev/null || true
 fi
 
 # Regenerate llms-full.txt

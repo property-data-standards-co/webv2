@@ -11,6 +11,13 @@ def fix_links(content, in_impl=False):
             
         if url.startswith('/web/'):
             return m.group(0)
+
+        # Image / asset paths: rewrite to /web/-rooted public asset URL
+        # e.g. `diagrams/entity-graph.png` -> `/web/diagrams/entity-graph.png`
+        asset_exts = ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.pdf')
+        if url.lower().endswith(asset_exts):
+            clean = re.sub(r'^[\./]+', '', url).lstrip('/')
+            return f'[{text}](/web/{clean})'
             
         clean_url = url.replace('.md', '')
         clean_url = re.sub(r'^[\./]+', '', clean_url)
