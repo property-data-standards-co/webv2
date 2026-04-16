@@ -421,12 +421,12 @@ html[data-has-hero] body::before {
 	background-size: cover;
 	background-position: center top;
 	background-repeat: no-repeat;
-	opacity: 0.9;
+	opacity: 0.45;
 }
 
 :root[data-theme='dark'] html[data-has-hero] body::before {
 	background-image: url('/web/entity-graph-dark.svg');
-	opacity: 0.55;
+	opacity: 0.25;
 }
 
 /* ──────────── Hero (splash) page ──────────── */
