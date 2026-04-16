@@ -619,10 +619,28 @@ html[data-has-hero] body::before {
 	flex-direction: column;
 	align-items: center;
 	gap: 0.125rem;
+	/* Position at the absolute top of the viewport */
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 1000;
 }
 
-.candidate-banner.sl-banner strong {
-	font-weight: 700;
+/* Push the Starlight header and sidebar down to make room for the fixed banner (~52px) */
+@layer starlight.core {
+	.header {
+		top: 3.25rem !important;
+	}
+	.sidebar-pane {
+		top: calc(var(--sl-nav-height) + 3.25rem) !important;
+	}
+	.right-sidebar-panel {
+		top: calc(var(--sl-nav-height) + 3.25rem) !important;
+	}
+	.main-frame {
+		padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + 3.25rem) !important;
+	}
 }
 
 :root[data-theme='dark'] .candidate-banner.sl-banner {
