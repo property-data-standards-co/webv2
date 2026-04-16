@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-  <!-- Subtle entity-graph background. The SVG is used as a CSS mask via
-       mask-image; colour is applied through background-color in CSS, so it
-       renders identically in all browsers.
-
-       The vertical fade-out is baked in via an internal linearGradient mask
-       so we only need a single CSS mask layer (avoids cross-browser
-       multi-layer mask-composite quirks). -->
+  <!-- Dark-mode variant: nodes filled with the dark page background colour
+       so lines terminate at circle edges, with a mid-grey stroke for the
+       outline. -->
   <defs>
     <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%"  stop-color="white" stop-opacity="1"/>
@@ -18,7 +14,7 @@
     </mask>
   </defs>
   <g mask="url(#fadeMask)">
-    <g stroke="#000" stroke-width="1" stroke-opacity="0.55" fill="none">
+    <g stroke="#404147" stroke-width="1" fill="none">
       <line x1="120" y1="180" x2="320" y2="120"/>
       <line x1="120" y1="180" x2="280" y2="320"/>
       <line x1="320" y1="120" x2="540" y2="240"/>
@@ -50,28 +46,28 @@
       <line x1="600" y1="720" x2="800" y2="800"/>
       <line x1="1260" y1="720" x2="800" y2="800"/>
     </g>
-    <g fill="#000" stroke="none">
-      <circle cx="120"  cy="180" r="5"/>
-      <circle cx="320"  cy="120" r="8"/>
-      <circle cx="280"  cy="320" r="6"/>
-      <circle cx="540"  cy="240" r="10"/>
-      <circle cx="460"  cy="480" r="7"/>
-      <circle cx="780"  cy="180" r="6"/>
-      <circle cx="700"  cy="420" r="11"/>
-      <circle cx="380"  cy="640" r="6"/>
-      <circle cx="980"  cy="120" r="8"/>
-      <circle cx="900"  cy="380" r="9"/>
-      <circle cx="820"  cy="600" r="6"/>
-      <circle cx="600"  cy="720" r="7"/>
-      <circle cx="1180" cy="240" r="10"/>
-      <circle cx="1240" cy="100" r="5"/>
-      <circle cx="1120" cy="480" r="7"/>
-      <circle cx="1040" cy="660" r="6"/>
-      <circle cx="1320" cy="380" r="9"/>
-      <circle cx="1440" cy="220" r="6"/>
-      <circle cx="1480" cy="500" r="6"/>
-      <circle cx="1260" cy="720" r="7"/>
-      <circle cx="800"  cy="800" r="5"/>
+    <g fill="#111113" stroke="#404147" stroke-width="1.25">
+      <circle cx="120"  cy="180" r="6"/>
+      <circle cx="320"  cy="120" r="9"/>
+      <circle cx="280"  cy="320" r="7"/>
+      <circle cx="540"  cy="240" r="11"/>
+      <circle cx="460"  cy="480" r="8"/>
+      <circle cx="780"  cy="180" r="7"/>
+      <circle cx="700"  cy="420" r="12"/>
+      <circle cx="380"  cy="640" r="7"/>
+      <circle cx="980"  cy="120" r="9"/>
+      <circle cx="900"  cy="380" r="10"/>
+      <circle cx="820"  cy="600" r="7"/>
+      <circle cx="600"  cy="720" r="8"/>
+      <circle cx="1180" cy="240" r="11"/>
+      <circle cx="1240" cy="100" r="6"/>
+      <circle cx="1120" cy="480" r="8"/>
+      <circle cx="1040" cy="660" r="7"/>
+      <circle cx="1320" cy="380" r="10"/>
+      <circle cx="1440" cy="220" r="7"/>
+      <circle cx="1480" cy="500" r="7"/>
+      <circle cx="1260" cy="720" r="8"/>
+      <circle cx="800"  cy="800" r="6"/>
     </g>
   </g>
 </svg>

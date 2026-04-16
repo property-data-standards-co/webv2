@@ -407,33 +407,26 @@ header.header {
 }
 
 /* ──────────── Splash page texture ──────────── */
-/* Subtle entity-graph SVG behind the splash content. We use mask-image
-   so the SVG's alpha defines the shape and the colour comes from
-   background-color. The vertical fade-out is baked INTO the SVG via an
-   internal <linearGradient> mask — so we only need a single mask layer
-   here, avoiding cross-browser multi-layer mask-composite inconsistency. */
+/* Subtle entity-graph SVG behind the splash content. Uses background-image
+   (not mask-image) so circles can have a white/dark fill that matches the
+   page background, making lines appear to terminate at circle edges.
+   Two SVGs so light/dark modes can use fills that blend with their own bg. */
 html[data-has-hero] body::before {
 	content: '';
 	position: fixed;
 	inset: 0;
 	pointer-events: none;
 	z-index: 0;
-	background-color: #1b396d; /* brand navy — painted through the mask */
-	opacity: 0.18;
-
-	-webkit-mask-image: url('/web/entity-graph.svg');
-	mask-image: url('/web/entity-graph.svg');
-	-webkit-mask-size: cover;
-	mask-size: cover;
-	-webkit-mask-position: center top;
-	mask-position: center top;
-	-webkit-mask-repeat: no-repeat;
-	mask-repeat: no-repeat;
+	background-image: url('/web/entity-graph-light.svg');
+	background-size: cover;
+	background-position: center top;
+	background-repeat: no-repeat;
+	opacity: 0.9;
 }
 
 :root[data-theme='dark'] html[data-has-hero] body::before {
-	background-color: #b9bbc6; /* light grey on dark backgrounds */
-	opacity: 0.10;
+	background-image: url('/web/entity-graph-dark.svg');
+	opacity: 0.55;
 }
 
 /* ──────────── Hero (splash) page ──────────── */
