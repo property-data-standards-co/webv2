@@ -408,13 +408,10 @@ header.header {
 
 /* ──────────── Splash page texture ──────────── */
 /* Subtle entity-graph SVG behind the splash content. We use mask-image
-   (not background-image) so the SVG's alpha defines what gets painted,
-   and we choose the colour via background-color. This works identically
-   in Chrome, Safari, and Firefox — no browser-specific currentColor
-   inheritance needed.
-
-   We layer two masks: the entity graph itself, and a top-to-bottom fade
-   so the texture dies away as you scroll past the hero. */
+   so the SVG's alpha defines the shape and the colour comes from
+   background-color. The vertical fade-out is baked INTO the SVG via an
+   internal <linearGradient> mask — so we only need a single mask layer
+   here, avoiding cross-browser multi-layer mask-composite inconsistency. */
 html[data-has-hero] body::before {
 	content: '';
 	position: fixed;
@@ -424,23 +421,14 @@ html[data-has-hero] body::before {
 	background-color: #1b396d; /* brand navy — painted through the mask */
 	opacity: 0.18;
 
-	/* Mask 1: the entity-graph SVG. Mask 2: the vertical fade.
-	   When using multiple masks, only pixels where ALL masks are opaque
-	   render — so we get the graph shape, faded toward the bottom. */
-	-webkit-mask-image:
-		url('/web/entity-graph.svg'),
-		linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.7) 50%, transparent 90%);
-	mask-image:
-		url('/web/entity-graph.svg'),
-		linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.7) 50%, transparent 90%);
-	-webkit-mask-size: cover, 100% 100%;
-	mask-size: cover, 100% 100%;
-	-webkit-mask-position: center top, center top;
-	mask-position: center top, center top;
-	-webkit-mask-repeat: no-repeat, no-repeat;
-	mask-repeat: no-repeat, no-repeat;
-	-webkit-mask-composite: source-in;        /* Safari */
-	mask-composite: intersect;                /* Standard */
+	-webkit-mask-image: url('/web/entity-graph.svg');
+	mask-image: url('/web/entity-graph.svg');
+	-webkit-mask-size: cover;
+	mask-size: cover;
+	-webkit-mask-position: center top;
+	mask-position: center top;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
 }
 
 :root[data-theme='dark'] html[data-has-hero] body::before {
