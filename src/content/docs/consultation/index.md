@@ -141,9 +141,26 @@ Granular, path-based delegation is essential for a diverse ecosystem containing 
 
 ---
 
+### Q8. The Federated Smart Data Model
+
+**The Problem:**
+The Department for Business and Trade (DBT) has outlined a vision for a "Federated Smart Data Governance Model" across the UK economy, involving a central Smart Data Coordination Entity (SDCE) and Sector-Specific Implementation Entities. How should the property sector align with this impending regulation?
+
+**The Options:**
+- **Option A:** Ignore cross-sector alignment and build a property-only governance model.
+- **Option B (Federated Alignment):** Design PDTF 2.0 specifically to act as the prototype "Sector-Specific Implementation Entity" for property. Our Trust Anchor (`trust.pdtf.org`) is built on standard OpenID Federation so it can seamlessly subordinate to a future government-run SDCE.
+
+**Our Recommendation (Option B):**
+Aligning with the DBT's Smart Data framework ensures PDTF 2.0 is future-proofed against incoming legislation and interoperable with other sectors (like finance and energy). HM Land Registry is identified as the likely lead regulator for property in this model.
+
+**Consultation Question:**
+> *Does the proposed governance framework (aligning PDTF 2.0 as a Sector-Specific Implementation Entity under the DBT's Smart Data model) provide a robust foundation for industry adoption? What elements of governance or accreditation are missing from this model?*
+
+---
+
 ## Section 4: Schema Decomposition & Relationships
 
-### Q8. Single Property, Multiple Titles
+### Q9. Single Property, Multiple Titles
 
 **The Problem:**
 A single property can be held under multiple legal titles — a freehold house with a separate leasehold garage, or a property with both a freehold and a long lease. How should the schema model this?
@@ -160,7 +177,7 @@ Single property, multiple titles. This keeps form mapping straightforward and al
 
 ---
 
-### Q9. The Title Entity as Legal Interest
+### Q10. The Title Entity as Legal Interest
 
 **The Problem:**
 The v3 schema stored ownership details (freehold/leasehold, shared ownership terms, lease length) inside a nested `ownership` wrapper. With the entity graph, we need to decide what the `Title` entity fundamentally represents.
@@ -177,7 +194,7 @@ The Title entity is fundamentally the legal interest. The register extract is *e
 
 ---
 
-### Q10. Relationship Credentials and the Two Intents
+### Q11. Relationship Credentials and the Two Intents
 
 **The Problem:**
 In v3, all parties are stored in a flat `participants[]` array with a `role` string. This loses the semantic richness of the relationships: a seller's conveyancer represents the seller's *intent to sell*, while a buyer's conveyancer supports the buyer's *intent to buy*. These are fundamentally different trust relationships.
@@ -198,7 +215,7 @@ Typed relationship credentials provide precise, revocable, auditable authority c
 
 ---
 
-### Q11. Transaction Sale Context
+### Q12. Transaction Sale Context
 
 **The Problem:**
 The v3 schema stored sale-specific financial details (outstanding mortgage, Help to Buy equity loan, number of sellers, limited company sale) inside the `ownership` object alongside legal interest details. These are distinct concerns.
@@ -215,7 +232,7 @@ These fields fail the "Logbook Test" — they are irrelevant to the next buyer. 
 
 ---
 
-### Q12. Evolving Identifiers (Unregistered Titles and Missing UPRNs)
+### Q13. Evolving Identifiers (Unregistered Titles and Missing UPRNs)
 
 **The Problem:**
 Some properties lack a UPRN (new builds). Some titles are unregistered. Over the course of a transaction, these identifiers may be allocated. How does the graph handle an entity whose permanent identifier didn't exist when the entity was first created?
@@ -232,7 +249,7 @@ Some properties lack a UPRN (new builds). Some titles are unregistered. Over the
 
 ---
 
-### Q13. Search and Document Identifiers
+### Q14. Search and Document Identifiers
 
 **The Problem:**
 Local authority searches, environmental reports, and other third-party documents need stable identifiers within the graph. Some providers issue their own reference numbers; others (especially PDF-based results) have no native identifier at all.
@@ -251,7 +268,7 @@ This avoids a central bottleneck while ensuring every credential has a stable, u
 
 ## Section 5: Access & Exchange
 
-### Q14. Intent-Based Access Control
+### Q15. Intent-Based Access Control
 
 **The Problem:** 
 Property data is highly sensitive. How do we ensure that only authorised parties (e.g., a mortgage lender) can access the data, without relying on a central, proprietary Access Control List (ACL)?
@@ -268,7 +285,7 @@ Using relationship credentials (`Representation`, `DelegatedConsent`) as capabil
 
 ---
 
-### Q15. Standardised Exchange Protocols
+### Q16. Standardised Exchange Protocols
 
 **The Problem:** 
 Once a credential exists, how is it requested and delivered between different platforms?
