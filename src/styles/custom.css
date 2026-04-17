@@ -503,6 +503,13 @@ html[data-has-hero] .main-pane {
 	-webkit-text-fill-color: transparent;
 }
 
+.hero h1 span {
+	-webkit-text-fill-color: initial;
+	color: var(--sl-color-text);
+	display: block;
+	margin-top: 0.5rem;
+}
+
 :root[data-theme='dark'] .hero h1 {
 	background: linear-gradient(180deg, var(--sl-color-white) 50%, rgba(252, 252, 253, 0.55));
 	-webkit-background-clip: text;
