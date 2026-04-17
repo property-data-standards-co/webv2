@@ -158,9 +158,43 @@ Aligning with the DBT's Smart Data framework ensures PDTF 2.0 is future-proofed 
 
 ---
 
+### Q9. GOV.UK Wallet Identity Binding
+
+**The Problem:**
+PDTF 2.0 introduces a `Person` entity represented as a Verifiable Credential. In Phase 2, consumers will hold verified digital identities in their GOV.UK Wallet. How should a person's government-verified identity be linked to their PDTF Person entity?
+
+**The Options:**
+- **Option A:** Platform-managed identity only. Each platform verifies identity independently and issues its own Person credentials with no cross-platform binding.
+- **Option B (Wallet Identity Binding):** When a consumer presents their GOV.UK Wallet identity via OID4VP, the platform records the wallet's DID or a verifiable hash of the identity VC in the Person credential's `identityBinding` claim. All subsequent PDTF credentials (SellerCapacity, DelegatedConsent) are cryptographically linked to this government-verified identity.
+
+**Our Recommendation (Option B):**
+Wallet identity binding creates a single, reusable identity anchor across the transaction. The buyer or seller verifies their identity once and carries that verification to every party — conveyancer, lender, estate agent, Land Registry — without repeating KYC checks.
+
+**Consultation Question:**
+> *Should PDTF 2.0 support GOV.UK Wallet identity binding as the primary mechanism for linking real-world identities to PDTF Person entities?*
+
+---
+
+### Q10. Cross-Party Identity Reuse
+
+**The Problem:**
+Today, a buyer undergoes separate AML/KYC checks with their conveyancer, their mortgage lender, and sometimes their estate agent. Each check costs money, takes time, and produces inconsistent results. If a consumer holds a government-verified identity in their GOV.UK Wallet, should a single verified presentation be accepted by all parties?
+
+**The Options:**
+- **Option A:** Each party continues to run independent AML/KYC checks regardless of wallet identity.
+- **Option B (Cross-Party Acceptance):** A verified GOV.UK Wallet identity presentation (at the appropriate assurance level) is accepted as sufficient AML/KYC evidence by all parties in the transaction. Each party can independently verify the credential's validity and revocation status without trusting the platform that first received it.
+
+**Our Recommendation (Option B):**
+Cross-party acceptance of a government-verified identity eliminates redundant checks, reduces transaction costs, and speeds up the process — while maintaining each party's ability to independently verify the credential.
+
+**Consultation Question:**
+> *Should a verified GOV.UK Wallet identity presentation be accepted as sufficient AML/KYC evidence across all parties in a transaction?*
+
+---
+
 ## Section 4: Schema Decomposition & Relationships
 
-### Q9. Single Property, Multiple Titles
+### Q11. Single Property, Multiple Titles
 
 **The Problem:**
 A single property can be held under multiple legal titles — a freehold house with a separate leasehold garage, or a property with both a freehold and a long lease. How should the schema model this?
@@ -177,7 +211,7 @@ Single property, multiple titles. This keeps form mapping straightforward and al
 
 ---
 
-### Q10. The Title Entity as Legal Interest
+### Q12. The Title Entity as Legal Interest
 
 **The Problem:**
 The v3 schema stored ownership details (freehold/leasehold, shared ownership terms, lease length) inside a nested `ownership` wrapper. With the entity graph, we need to decide what the `Title` entity fundamentally represents.
@@ -194,7 +228,7 @@ The Title entity is fundamentally the legal interest. The register extract is *e
 
 ---
 
-### Q11. Relationship Credentials and the Two Intents
+### Q13. Relationship Credentials and the Two Intents
 
 **The Problem:**
 In v3, all parties are stored in a flat `participants[]` array with a `role` string. This loses the semantic richness of the relationships: a seller's conveyancer represents the seller's *intent to sell*, while a buyer's conveyancer supports the buyer's *intent to buy*. These are fundamentally different trust relationships.
@@ -215,7 +249,7 @@ Typed relationship credentials provide precise, revocable, auditable authority c
 
 ---
 
-### Q12. Transaction Sale Context
+### Q14. Transaction Sale Context
 
 **The Problem:**
 The v3 schema stored sale-specific financial details (outstanding mortgage, Help to Buy equity loan, number of sellers, limited company sale) inside the `ownership` object alongside legal interest details. These are distinct concerns.
@@ -232,7 +266,7 @@ These fields fail the "Logbook Test" — they are irrelevant to the next buyer. 
 
 ---
 
-### Q13. Evolving Identifiers (Unregistered Titles and Missing UPRNs)
+### Q15. Evolving Identifiers (Unregistered Titles and Missing UPRNs)
 
 **The Problem:**
 Some properties lack a UPRN (new builds). Some titles are unregistered. Over the course of a transaction, these identifiers may be allocated. How does the graph handle an entity whose permanent identifier didn't exist when the entity was first created?
@@ -249,7 +283,7 @@ Some properties lack a UPRN (new builds). Some titles are unregistered. Over the
 
 ---
 
-### Q14. Search and Document Identifiers
+### Q16. Search and Document Identifiers
 
 **The Problem:**
 Local authority searches, environmental reports, and other third-party documents need stable identifiers within the graph. Some providers issue their own reference numbers; others (especially PDF-based results) have no native identifier at all.
@@ -268,7 +302,7 @@ This avoids a central bottleneck while ensuring every credential has a stable, u
 
 ## Section 5: Access & Exchange
 
-### Q15. Intent-Based Access Control
+### Q17. Intent-Based Access Control
 
 **The Problem:** 
 Property data is highly sensitive. How do we ensure that only authorised parties (e.g., a mortgage lender) can access the data, without relying on a central, proprietary Access Control List (ACL)?
@@ -285,7 +319,7 @@ Using relationship credentials (`Representation`, `DelegatedConsent`) as capabil
 
 ---
 
-### Q16. Standardised Exchange Protocols
+### Q18. Standardised Exchange Protocols
 
 **The Problem:** 
 Once a credential exists, how is it requested and delivered between different platforms?
