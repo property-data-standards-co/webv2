@@ -1,0 +1,670 @@
+---
+title: "Key Management"
+description: "Generate, store, and manage Ed25519 signing keys across development, staging, and production environments."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Every PDTF credential is signed with an Ed25519 key. How you store and manage those keys depends on your environment and security requirements. `@pdtf/core` provides a `KeyProvider` interface with four built-in implementations.
+
+## Quick Start
+
+For local development and testing, SQLite is the fastest path:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```bash
+    npm install @pdtf/core better-sqlite3
+    ```
+
+    ```ts
+    import { SqliteKeyProvider, VcSigner } from '@pdtf/core';
+
+    const keys = new SqliteKeyProvider({ dbPath: './pdtf-keys.db' });
+    const key = await keys.generateKey('my-adapter', 'adapter');
+    const signer = new VcSigner(keys, 'my-adapter', key.did);
+
+    console.log(`Adapter DID: ${key.did}`);
+    // did:key:z6Mk...
+
+    const vc = await signer.sign({
+      type: 'PropertyDataCredential',
+      credentialSubject: {
+        id: 'urn:pdtf:uprn:100023336956',
+        energyEfficiency: { rating: 'B', score: 85 },
+      },
+    });
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```bash
+    cargo add pdtf-core
+    ```
+
+    ```rust
+    use pdtf_core::keys::provider::memory::MemoryKeyProvider;
+    use pdtf_core::keys::provider::KeyProvider;
+    use pdtf_core::signer::{VcSigner, BuildVcOptions};
+    use pdtf_core::types::*;
+
+    let provider = MemoryKeyProvider::new();
+    let record = provider.generate_key("my-adapter", KeyCategory::Adapter).await?;
+
+    let signer = VcSigner::from_key_id(&provider, "my-adapter").await?;
+    println!("Adapter DID: {}", record.did);
+
+    let vc = signer.sign(BuildVcOptions {
+        vc_type: vec!["PropertyDataCredential".into()],
+        credential_subject: CredentialSubject {
+            id: "urn:pdtf:uprn:100023336956".into(),
+            claims: serde_json::from_value(serde_json::json!({
+                "energyEfficiency": { "rating": "B", "score": 85 }
+            }))?,
+        },
+        ..Default::default()
+    }).await?;
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```bash
+    pip install pdtf-core
+    ```
+
+    ```python
+    from pdtf_core import generate_keypair, sign_vc
+    import json
+
+    keypair = generate_keypair()
+    print(f"Adapter DID: {keypair['did']}")
+
+    vc = {
+        "@context": [
+            "https://www.w3.org/ns/credentials/v2",
+            "https://propdata.org.uk/credentials/v2",
+        ],
+        "type": ["VerifiableCredential", "PropertyDataCredential"],
+        "issuer": {"id": keypair["did"]},
+        "credentialSubject": {
+            "id": "urn:pdtf:uprn:100023336956",
+            "energyEfficiency": {"rating": "B", "score": 85},
+        },
+    }
+
+    signed = sign_vc(json.dumps(vc), keypair["secret_key_hex"])
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```bash
+    dotnet add package Pdtf.Core
+    ```
+
+    ```csharp
+    using Pdtf.Core;
+
+    var keypair = PdtfCore.GenerateKeypair();
+    Console.WriteLine($"Adapter DID: {keypair.Did}");
+
+    var vc = JsonSerializer.Serialize(new {
+        context = new[] {
+            "https://www.w3.org/ns/credentials/v2",
+            "https://propdata.org.uk/credentials/v2",
+        },
+        type = new[] { "VerifiableCredential", "PropertyDataCredential" },
+        issuer = new { id = keypair.Did },
+        credentialSubject = new {
+            id = "urn:pdtf:uprn:100023336956",
+            energyEfficiency = new { rating = "B", score = 85 },
+        },
+    });
+
+    var signed = PdtfCore.SignVc(vc, keypair.SecretKeyHex);
+    ```
+  </TabItem>
+</Tabs>
+
+That's it. The SQLite file contains your keys — back it up, don't commit it to git.
+
+## Choosing a Provider
+
+| Provider | Security | Setup | Best for |
+|----------|----------|-------|----------|
+| `InMemoryKeyProvider` | None (RAM only) | Zero | Unit tests |
+| `SqliteKeyProvider` | File-system encryption | `npm i better-sqlite3` | Local dev, CI, third-party testing |
+| `FirestoreKeyProvider` | GCP encryption at rest | Firestore project | Staging, small deployments |
+| `KmsKeyProvider` | HSM-backed, keys never exported | GCP KMS keyring | Production |
+
+All providers implement the same `KeyProvider` interface. Your signing code doesn't change when you move from dev to production — only the provider instantiation.
+
+## KeyProvider Interface
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    interface KeyProvider {
+      generateKey(keyId: string, category: KeyCategory): Promise<KeyRecord>;
+      sign(keyId: string, data: Uint8Array): Promise<Uint8Array>;
+      getPublicKey(keyId: string): Promise<Uint8Array>;
+      resolveDidKey(keyId: string): Promise<string>;
+    }
+
+    type KeyCategory = 'adapter' | 'user' | 'platform' | 'organisation';
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    #[async_trait]
+    pub trait KeyProvider: Send + Sync {
+        async fn generate_key(&self, key_id: &str, category: KeyCategory)
+            -> Result<KeyRecord>;
+        async fn sign(&self, key_id: &str, data: &[u8]) -> Result<Vec<u8>>;
+        async fn get_public_key(&self, key_id: &str) -> Result<Vec<u8>>;
+        async fn resolve_did_key(&self, key_id: &str) -> Result<String>;
+    }
+
+    pub enum KeyCategory { Adapter, User, Platform, Organisation }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # Python bindings expose flat functions rather than a provider interface
+    # generate_keypair() → dict with did, public_key_hex, secret_key_hex
+    # sign_vc(vc_json, secret_key_hex) → signed VC JSON string
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    // .NET bindings expose static methods via P/Invoke
+    // PdtfCore.GenerateKeypair() → KeypairResult { Did, PublicKeyHex, SecretKeyHex }
+    // PdtfCore.SignVc(vcJson, secretKeyHex) → string
+    ```
+  </TabItem>
+</Tabs>
+
+**Key categories** are metadata only — they don't affect cryptographic operations. Use them to organise and audit your keys:
+
+| Category | Purpose | Example |
+|----------|---------|---------|
+| `adapter` | Signs credentials from a data source adapter | EPC adapter, HMLR adapter |
+| `user` | Signs user-initiated attestations | Seller property information |
+| `platform` | Signs platform-level credentials | Transaction lifecycle events |
+| `organisation` | Organisation identity key | `did:web:platform.example.com` anchor |
+
+---
+
+## SQLite Provider
+
+Zero-infrastructure key management. Keys are stored in a local SQLite database with Ed25519 secret keys in a `BLOB` column.
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    import { SqliteKeyProvider } from '@pdtf/core';
+
+    // File-based (persistent)
+    const keys = new SqliteKeyProvider({ dbPath: './pdtf-keys.db' });
+
+    // In-memory (tests)
+    const testKeys = new SqliteKeyProvider({ dbPath: ':memory:' });
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::keys::provider::memory::MemoryKeyProvider;
+
+    // In-memory provider (for dev/tests)
+    let keys = MemoryKeyProvider::new();
+
+    // For persistent storage, implement KeyProvider with your DB of choice
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # Python bindings use in-memory key generation
+    # For persistence, store the keypair dict to a secure file
+    import json
+
+    keypair = generate_keypair()
+    with open("keys.json", "w") as f:
+        json.dump(keypair, f)
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    // .NET bindings use in-memory key generation
+    // For persistence, store the keypair securely
+    var keypair = PdtfCore.GenerateKeypair();
+    File.WriteAllText("keys.json",
+        JsonSerializer.Serialize(keypair));
+    ```
+  </TabItem>
+</Tabs>
+
+The provider auto-creates the `pdtf_keys` table on first use. Schema:
+
+```sql
+CREATE TABLE pdtf_keys (
+  key_id     TEXT PRIMARY KEY,
+  category   TEXT NOT NULL,
+  secret_key BLOB NOT NULL,
+  public_key BLOB NOT NULL,
+  did        TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+```
+
+### Security considerations
+
+- The secret key is stored **unencrypted** in the SQLite file. Protect it with file-system permissions.
+- For CI pipelines, use `:memory:` or a temporary file that's deleted after the run.
+- Don't commit `.db` files to version control. Add `*.db` to `.gitignore`.
+
+---
+
+## Cloud KMS Provider
+
+For production deployments where signing keys must never leave a hardware security module.
+
+```bash
+npm install @pdtf/core @google-cloud/kms
+```
+
+### Prerequisites
+
+1. A GCP project with the Cloud KMS API enabled
+2. A KMS keyring (create manually or via Terraform)
+3. Service account with `roles/cloudkms.signerVerifier` and `roles/cloudkms.publicKeyViewer`
+
+```bash
+# Create the keyring (one-time setup)
+gcloud kms keyrings create pdtf \
+  --location europe-west2 \
+  --project my-project
+```
+
+### Usage
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    import { KmsKeyProvider, VcSigner } from '@pdtf/core';
+
+    const keys = new KmsKeyProvider({
+      projectId: 'my-project',
+      locationId: 'europe-west2',
+      keyRingId: 'pdtf',
+    });
+
+    // Generate creates a CryptoKey in KMS
+    const key = await keys.generateKey('epc-adapter', 'adapter');
+    console.log(`DID: ${key.did}`);
+
+    // Sign operations call KMS — the secret key never leaves the HSM
+    const signer = new VcSigner(keys, 'epc-adapter', key.did);
+    const vc = await signer.sign({ /* ... */ });
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    // Rust: implement KeyProvider trait backed by your KMS client
+    // The pdtf-core crate provides the trait; KMS integration is
+    // environment-specific.
+
+    struct KmsKeyProvider { /* GCP KMS client */ }
+
+    #[async_trait]
+    impl KeyProvider for KmsKeyProvider {
+        async fn sign(&self, key_id: &str, data: &[u8]) -> Result<Vec<u8>> {
+            // Call GCP KMS asymmetricSign API
+            todo!()
+        }
+        // ... other trait methods
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # Python: use google-cloud-kms for production key management
+    from google.cloud import kms_v1
+
+    client = kms_v1.KeyManagementServiceClient()
+    # Generate and sign via KMS, then pass signature bytes to pdtf_core
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    // .NET: use Google.Cloud.Kms.V1 for production key management
+    using Google.Cloud.Kms.V1;
+
+    var kmsClient = KeyManagementServiceClient.Create();
+    // Generate and sign via KMS, then pass signature bytes to PdtfCore
+    ```
+  </TabItem>
+</Tabs>
+
+### How it works
+
+- `generateKey()` creates a KMS `CryptoKey` with purpose `ASYMMETRIC_SIGN` and algorithm `EC_SIGN_ED25519`
+- `sign()` calls the KMS `asymmetricSign` API — the key never leaves Google's infrastructure
+- `getPublicKey()` fetches the PEM-encoded public key from KMS and extracts the raw 32-byte Ed25519 key (cached in memory)
+- `resolveDidKey()` derives the `did:key` from the public key
+
+### Key rotation
+
+KMS supports key versions. To rotate:
+
+1. Create a new key version in KMS (or let auto-rotation handle it)
+2. Update the TIR with the new `did:key`
+3. Disable the old key version after a grace period
+4. Old credentials remain verifiable (the public key was embedded in the DID)
+
+---
+
+## Environment Strategy
+
+A typical deployment uses different providers per environment:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    function createKeyProvider(): KeyProvider {
+      switch (process.env.NODE_ENV) {
+        case 'production':
+          return new KmsKeyProvider({
+            projectId: process.env.GCP_PROJECT!,
+            locationId: process.env.GCP_LOCATION!,
+            keyRingId: process.env.KMS_KEYRING!,
+          });
+
+        case 'staging':
+          return new FirestoreKeyProvider({
+            projectId: process.env.GCP_PROJECT!,
+            collection: 'pdtf-keys',
+          });
+
+        default:
+          return new SqliteKeyProvider({
+            dbPath: './pdtf-keys.db',
+          });
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    fn create_key_provider() -> Box<dyn KeyProvider> {
+        match std::env::var("ENV").as_deref() {
+            Ok("production") => {
+                Box::new(KmsKeyProvider::new(/* ... */))
+            }
+            _ => {
+                Box::new(MemoryKeyProvider::new())
+            }
+        }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import os
+
+    def create_key_provider():
+        env = os.environ.get("ENV", "development")
+        if env == "production":
+            return KmsKeyProvider(project_id=os.environ["GCP_PROJECT"])
+        else:
+            return generate_keypair()  # in-memory for dev
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    IKeyProvider CreateKeyProvider() => Environment.GetEnvironmentVariable("ENV") switch
+    {
+        "production" => new KmsKeyProvider(
+            Environment.GetEnvironmentVariable("GCP_PROJECT")),
+        _ => new InMemoryKeyProvider(),
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+### Key naming conventions
+
+Use consistent key IDs across environments:
+
+```
+adapter/epc          → EPC data source adapter
+adapter/hmlr         → HMLR title data adapter
+platform/transaction → Transaction lifecycle signing
+org/platform          → Organisation identity key
+service/validate     → Validation service receipt signing
+```
+
+---
+
+## For Third-Party Implementers
+
+If you're building a PDTF adapter (e.g., for a conveyancing platform), here's the minimal path:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```bash
+    npm install @pdtf/core better-sqlite3
+    ```
+
+    ```ts
+    import { SqliteKeyProvider, VcSigner, TirClient } from '@pdtf/core';
+
+    // 1. Set up key management
+    const keys = new SqliteKeyProvider({ dbPath: './keys.db' });
+    const key = await keys.generateKey('my-adapter', 'adapter');
+
+    // 2. Register your DID in the TIR
+    //    → Submit a PR to property-data-standards-co/tir
+    //    → Add your issuer entry with key.did and authorised paths
+    console.log(`Register this DID in the TIR: ${key.did}`);
+
+    // 3. Start signing credentials
+    const signer = new VcSigner(keys, 'my-adapter', key.did);
+
+    const vc = await signer.sign({
+      type: 'PropertyDataCredential',
+      credentialSubject: {
+        id: 'urn:pdtf:uprn:100023336956',
+        localAuthority: { name: 'Camden', code: 'E09000007' },
+      },
+    });
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```bash
+    cargo add pdtf-core
+    ```
+
+    ```rust
+    use pdtf_core::keys::provider::memory::MemoryKeyProvider;
+    use pdtf_core::keys::provider::KeyProvider;
+    use pdtf_core::signer::{VcSigner, BuildVcOptions};
+    use pdtf_core::types::*;
+
+    // 1. Set up key management
+    let provider = MemoryKeyProvider::new();
+    let record = provider.generate_key("my-adapter", KeyCategory::Adapter).await?;
+
+    // 2. Register your DID in the TIR
+    println!("Register this DID in the TIR: {}", record.did);
+
+    // 3. Start signing
+    let signer = VcSigner::from_key_id(&provider, "my-adapter").await?;
+    let vc = signer.sign(BuildVcOptions {
+        vc_type: vec!["PropertyDataCredential".into()],
+        credential_subject: CredentialSubject {
+            id: "urn:pdtf:uprn:100023336956".into(),
+            claims: serde_json::from_value(serde_json::json!({
+                "localAuthority": { "name": "Camden", "code": "E09000007" }
+            }))?,
+        },
+        ..Default::default()
+    }).await?;
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```bash
+    pip install pdtf-core
+    ```
+
+    ```python
+    from pdtf_core import generate_keypair, sign_vc
+    import json
+
+    # 1. Generate a keypair
+    keypair = generate_keypair()
+
+    # 2. Register your DID in the TIR
+    print(f"Register this DID in the TIR: {keypair['did']}")
+
+    # 3. Sign a credential
+    vc = {
+        "@context": [
+            "https://www.w3.org/ns/credentials/v2",
+            "https://propdata.org.uk/credentials/v2",
+        ],
+        "type": ["VerifiableCredential", "PropertyDataCredential"],
+        "issuer": {"id": keypair["did"]},
+        "credentialSubject": {
+            "id": "urn:pdtf:uprn:100023336956",
+            "localAuthority": {"name": "Camden", "code": "E09000007"},
+        },
+    }
+    signed = sign_vc(json.dumps(vc), keypair["secret_key_hex"])
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```bash
+    dotnet add package Pdtf.Core
+    ```
+
+    ```csharp
+    using Pdtf.Core;
+
+    // 1. Generate a keypair
+    var keypair = PdtfCore.GenerateKeypair();
+
+    // 2. Register your DID in the TIR
+    Console.WriteLine($"Register this DID in the TIR: {keypair.Did}");
+
+    // 3. Sign a credential
+    var vc = JsonSerializer.Serialize(new {
+        context = new[] {
+            "https://www.w3.org/ns/credentials/v2",
+            "https://propdata.org.uk/credentials/v2",
+        },
+        type = new[] { "VerifiableCredential", "PropertyDataCredential" },
+        issuer = new { id = keypair.Did },
+        credentialSubject = new {
+            id = "urn:pdtf:uprn:100023336956",
+            localAuthority = new { name = "Camden", code = "E09000007" },
+        },
+    });
+    var signed = PdtfCore.SignVc(vc, keypair.SecretKeyHex);
+    ```
+  </TabItem>
+</Tabs>
+
+When you're ready for production, swap `SqliteKeyProvider` for `KmsKeyProvider` (or your own `KeyProvider` implementation) — the signing code stays identical.
+
+### Custom providers
+
+Implement the `KeyProvider` interface to integrate with your own key management:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    import type { KeyProvider, KeyRecord, KeyCategory } from '@pdtf/core';
+
+    class MyKeyVaultProvider implements KeyProvider {
+      async generateKey(keyId: string, category: KeyCategory): Promise<KeyRecord> {
+        // Your key generation logic
+      }
+      async sign(keyId: string, data: Uint8Array): Promise<Uint8Array> {
+        // Your signing logic — must return raw Ed25519 signature (64 bytes)
+      }
+      async getPublicKey(keyId: string): Promise<Uint8Array> {
+        // Return raw Ed25519 public key (32 bytes)
+      }
+      async resolveDidKey(keyId: string): Promise<string> {
+        const pubKey = await this.getPublicKey(keyId);
+        return deriveDidKey(pubKey);
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::keys::provider::KeyProvider;
+    use pdtf_core::types::*;
+    use async_trait::async_trait;
+
+    struct MyKeyVaultProvider;
+
+    #[async_trait]
+    impl KeyProvider for MyKeyVaultProvider {
+        async fn generate_key(&self, key_id: &str, category: KeyCategory)
+            -> Result<KeyRecord> {
+            // Your key generation logic
+            todo!()
+        }
+        async fn sign(&self, key_id: &str, data: &[u8]) -> Result<Vec<u8>> {
+            // Must return raw Ed25519 signature (64 bytes)
+            todo!()
+        }
+        async fn get_public_key(&self, key_id: &str) -> Result<Vec<u8>> {
+            // Return raw Ed25519 public key (32 bytes)
+            todo!()
+        }
+        async fn resolve_did_key(&self, key_id: &str) -> Result<String> {
+            let pub_key = self.get_public_key(key_id).await?;
+            pdtf_core::keys::ed25519::derive_did_key(&pub_key)
+        }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # Python bindings currently expose flat functions.
+    # For custom key management, manage keys externally and pass
+    # the secret_key_hex to sign_vc() at signing time.
+
+    class MyKeyVault:
+        def generate(self) -> dict:
+            keypair = generate_keypair()
+            self._store(keypair)  # persist to your vault
+            return keypair
+
+        def sign(self, vc_json: str, key_id: str) -> str:
+            secret = self._load(key_id)["secret_key_hex"]
+            return sign_vc(vc_json, secret)
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    // .NET: manage keys externally, pass secret to PdtfCore.SignVc()
+    public class MyKeyVault
+    {
+        public KeypairResult Generate()
+        {
+            var kp = PdtfCore.GenerateKeypair();
+            Store(kp); // persist to your vault
+            return kp;
+        }
+
+        public string Sign(string vcJson, string keyId)
+        {
+            var secret = Load(keyId).SecretKeyHex;
+            return PdtfCore.SignVc(vcJson, secret);
+        }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+The only requirement: Ed25519 keys, raw byte signatures. Everything else is up to you.

@@ -1,0 +1,470 @@
+---
+title: "Build an Adapter"
+description: "Create a data source adapter that issues PDTF credentials"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+A PDTF adapter is a trusted proxy. It fetches data from a source system, maps that data into a PDTF entity shape, signs a credential with its own `did:web` identity, and publishes revocation state for anything it issues.
+
+In practice, an adapter has five moving parts:
+
+1. a `did:web` DID document
+2. an issuer key and `VcSigner`
+3. access to the source API
+4. a mapper from source response to PDTF JSON
+5. status list allocation and publishing
+
+## 1. Define the adapter identity
+
+A typical adapter DID looks like this:
+
+```text
+did:web:adapters.propdata.org.uk:epc
+```
+
+That resolves to:
+
+```text
+https://adapters.propdata.org.uk/epc/did.json
+```
+
+Your DID document should expose at least one verification method, include it in `assertionMethod`, and usually advertise service endpoints for VC issuance and revocation.
+
+## 2. Initialise the signer
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    import { VcSigner } from '@pdtf/core';
+    import type { KeyProvider } from '@pdtf/core';
+
+    const issuerDid = 'did:web:adapters.propdata.org.uk:epc';
+    const keyId = 'adapter/epc/signing-key-1';
+    const keyProvider: KeyProvider = getYourKeyProvider();
+
+    const signer = new VcSigner(keyProvider, keyId, issuerDid);
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::signer::VcSigner;
+    use pdtf_core::keys::provider::memory::MemoryKeyProvider;
+
+    let provider = MemoryKeyProvider::new();
+    let record = provider.generate_key("adapter-epc", KeyCategory::Adapter).await?;
+
+    let signer = VcSigner::from_key_id(&provider, "adapter-epc").await?;
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from pdtf_core import generate_keypair, sign_vc
+
+    keypair = generate_keypair()
+    issuer_did = keypair["did"]
+    secret_key_hex = keypair["secret_key_hex"]
+
+    # sign_vc(vc_json, secret_key_hex) is used at signing time
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    using Pdtf.Core;
+
+    var keypair = PdtfCore.GenerateKeypair();
+    var issuerDid = keypair.Did;
+
+    // Use PdtfCore.SignVc(vcJson, secretKeyHex) at signing time
+    ```
+  </TabItem>
+</Tabs>
+
+## 3. Fetch from the source API
+
+Keep source fetching separate from credential issuance. That makes it easier to test the mapping logic.
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    type EpcApiResponse = {
+      uprn: string;
+      currentEnergyRating: string;
+      potentialEnergyRating: string;
+      lodgementDate: string;
+      expiryDate: string;
+      certificateNumber: string;
+      sourceUrl: string;
+    };
+
+    async function fetchEpc(uprn: string): Promise<EpcApiResponse> {
+      const response = await fetch(`https://source.example/epc/${uprn}`);
+      if (!response.ok) throw new Error(`Source API failed: ${response.status}`);
+      return response.json();
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    #[derive(Deserialize)]
+    struct EpcApiResponse {
+        uprn: String,
+        current_energy_rating: String,
+        potential_energy_rating: String,
+        lodgement_date: String,
+        expiry_date: String,
+        certificate_number: String,
+        source_url: String,
+    }
+
+    async fn fetch_epc(uprn: &str) -> Result<EpcApiResponse> {
+        let url = format!("https://source.example/epc/{uprn}");
+        let resp = reqwest::get(&url).await?.error_for_status()?;
+        Ok(resp.json().await?)
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import requests
+    from dataclasses import dataclass
+
+    @dataclass
+    class EpcApiResponse:
+        uprn: str
+        current_energy_rating: str
+        potential_energy_rating: str
+        lodgement_date: str
+        expiry_date: str
+        certificate_number: str
+        source_url: str
+
+    def fetch_epc(uprn: str) -> EpcApiResponse:
+        resp = requests.get(f"https://source.example/epc/{uprn}")
+        resp.raise_for_status()
+        return EpcApiResponse(**resp.json())
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    public record EpcApiResponse(
+        string Uprn, string CurrentEnergyRating,
+        string PotentialEnergyRating, string LodgementDate,
+        string ExpiryDate, string CertificateNumber, string SourceUrl);
+
+    async Task<EpcApiResponse> FetchEpc(string uprn)
+    {
+        var resp = await httpClient.GetAsync($"https://source.example/epc/{uprn}");
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<EpcApiResponse>();
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## 4. Map the source data to PDTF
+
+The adapter should issue a complete subtree for the paths it is authoritative for.
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    function mapToCredentialSubject(source: EpcApiResponse) {
+      return {
+        id: `urn:pdtf:uprn:${source.uprn}`,
+        energyEfficiency: {
+          certificate: {
+            currentEnergyRating: source.currentEnergyRating,
+            potentialEnergyRating: source.potentialEnergyRating,
+            lodgementDate: source.lodgementDate,
+            expiryDate: source.expiryDate,
+            certificateNumber: source.certificateNumber,
+          },
+        },
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    fn map_to_credential_subject(source: &EpcApiResponse) -> serde_json::Value {
+        serde_json::json!({
+            "id": format!("urn:pdtf:uprn:{}", source.uprn),
+            "energyEfficiency": {
+                "certificate": {
+                    "currentEnergyRating": source.current_energy_rating,
+                    "potentialEnergyRating": source.potential_energy_rating,
+                    "lodgementDate": source.lodgement_date,
+                    "expiryDate": source.expiry_date,
+                    "certificateNumber": source.certificate_number,
+                }
+            }
+        })
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    def map_to_credential_subject(source: EpcApiResponse) -> dict:
+        return {
+            "id": f"urn:pdtf:uprn:{source.uprn}",
+            "energyEfficiency": {
+                "certificate": {
+                    "currentEnergyRating": source.current_energy_rating,
+                    "potentialEnergyRating": source.potential_energy_rating,
+                    "lodgementDate": source.lodgement_date,
+                    "expiryDate": source.expiry_date,
+                    "certificateNumber": source.certificate_number,
+                }
+            },
+        }
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    object MapToCredentialSubject(EpcApiResponse source) => new
+    {
+        id = $"urn:pdtf:uprn:{source.Uprn}",
+        energyEfficiency = new {
+            certificate = new {
+                source.CurrentEnergyRating,
+                source.PotentialEnergyRating,
+                source.LodgementDate,
+                source.ExpiryDate,
+                source.CertificateNumber,
+            }
+        }
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## 5. Allocate status and sign
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    async function allocateStatusEntry() {
+      return {
+        id: 'https://adapters.propdata.org.uk/status/epc/list-042#18293',
+        type: 'BitstringStatusListEntry' as const,
+        statusPurpose: 'revocation' as const,
+        statusListIndex: '18293',
+        statusListCredential: 'https://adapters.propdata.org.uk/status/epc/list-042',
+      };
+    }
+
+    export async function issueEpcVc(uprn: string) {
+      const source = await fetchEpc(uprn);
+      const credentialStatus = await allocateStatusEntry();
+
+      return signer.sign({
+        type: 'PropertyCredential',
+        credentialSubject: mapToCredentialSubject(source),
+        credentialStatus,
+        evidence: [
+          {
+            type: 'ElectronicRecord',
+            source: source.sourceUrl,
+            retrievedAt: new Date().toISOString(),
+          },
+        ],
+      });
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::signer::BuildVcOptions;
+    use pdtf_core::types::*;
+
+    async fn issue_epc_vc(uprn: &str) -> Result<VerifiableCredential> {
+        let source = fetch_epc(uprn).await?;
+        let subject = map_to_credential_subject(&source);
+
+        signer.sign(BuildVcOptions {
+            vc_type: vec!["PropertyCredential".to_string()],
+            credential_subject: CredentialSubject {
+                id: format!("urn:pdtf:uprn:{}", source.uprn),
+                claims: serde_json::from_value(subject)?,
+            },
+            credential_status: Some(CredentialStatus {
+                id: "https://adapters.propdata.org.uk/status/epc/list-042#18293".into(),
+                r#type: "BitstringStatusListEntry".into(),
+                status_purpose: "revocation".into(),
+                status_list_index: "18293".into(),
+                status_list_credential: "https://adapters.propdata.org.uk/status/epc/list-042".into(),
+            }),
+            evidence: Some(vec![Evidence {
+                r#type: "ElectronicRecord".into(),
+                source: Some(source.source_url.clone()),
+                retrieved_at: Some(chrono::Utc::now().to_rfc3339()),
+            }]),
+            ..Default::default()
+        }).await
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import json
+    from datetime import datetime, timezone
+
+    def issue_epc_vc(uprn: str) -> dict:
+        source = fetch_epc(uprn)
+        subject = map_to_credential_subject(source)
+
+        vc = {
+            "@context": [
+                "https://www.w3.org/ns/credentials/v2",
+                "https://propdata.org.uk/credentials/v2",
+            ],
+            "type": ["VerifiableCredential", "PropertyCredential"],
+            "issuer": {"id": issuer_did},
+            "validFrom": datetime.now(timezone.utc).isoformat(),
+            "credentialSubject": subject,
+            "credentialStatus": {
+                "id": "https://adapters.propdata.org.uk/status/epc/list-042#18293",
+                "type": "BitstringStatusListEntry",
+                "statusPurpose": "revocation",
+                "statusListIndex": "18293",
+                "statusListCredential": "https://adapters.propdata.org.uk/status/epc/list-042",
+            },
+        }
+
+        signed = sign_vc(json.dumps(vc), secret_key_hex)
+        return json.loads(signed)
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    async Task<string> IssueEpcVc(string uprn)
+    {
+        var source = await FetchEpc(uprn);
+        var subject = MapToCredentialSubject(source);
+
+        var vc = JsonSerializer.Serialize(new {
+            context = new[] {
+                "https://www.w3.org/ns/credentials/v2",
+                "https://propdata.org.uk/credentials/v2",
+            },
+            type = new[] { "VerifiableCredential", "PropertyCredential" },
+            issuer = new { id = keypair.Did },
+            validFrom = DateTime.UtcNow.ToString("o"),
+            credentialSubject = subject,
+            credentialStatus = new {
+                id = "https://adapters.propdata.org.uk/status/epc/list-042#18293",
+                type = "BitstringStatusListEntry",
+                statusPurpose = "revocation",
+                statusListIndex = "18293",
+                statusListCredential = "https://adapters.propdata.org.uk/status/epc/list-042",
+            },
+        });
+
+        return PdtfCore.SignVc(vc, keypair.SecretKeyHex);
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## 6. Validate before returning
+
+Adapters should self-validate what they issue.
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    import { DidResolver, TirClient, VcValidator } from '@pdtf/core';
+
+    const validator = new VcValidator();
+
+    async function issueAndVerify(uprn: string) {
+      const vc = await issueEpcVc(uprn);
+
+      const result = await validator.validate(vc, {
+        didResolver: new DidResolver(),
+        tirClient: new TirClient(),
+        credentialPaths: ['Property:/energyEfficiency/*'],
+      });
+
+      if (!result.valid) {
+        throw new Error(`Adapter issued invalid VC: ${JSON.stringify(result.stages)}`);
+      }
+
+      return vc;
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::validator::verify::{verify_vc, VerifyVcOptions};
+
+    async fn issue_and_verify(uprn: &str) -> Result<VerifiableCredential> {
+        let vc = issue_epc_vc(uprn).await?;
+
+        let result = verify_vc(VerifyVcOptions {
+            vc: &vc,
+            resolver: &DidResolver::new()?,
+            trust_resolver: None,
+            claimed_paths: vec!["Property:/energyEfficiency/*".into()],
+            status_list_bitstring: None,
+        }).await;
+
+        if !result.valid {
+            return Err(format!("Adapter issued invalid VC: {:?}", result.errors).into());
+        }
+
+        Ok(vc)
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from pdtf_core import verify_vc
+
+    def issue_and_verify(uprn: str) -> dict:
+        vc = issue_epc_vc(uprn)
+
+        result = verify_vc(
+            vc_json=json.dumps(vc),
+            credential_paths=["Property:/energyEfficiency/*"],
+        )
+
+        if not result["valid"]:
+            raise Exception(f"Adapter issued invalid VC: {result['errors']}")
+
+        return vc
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    async Task<string> IssueAndVerify(string uprn)
+    {
+        var vcJson = await IssueEpcVc(uprn);
+
+        var result = await PdtfCore.VerifyVc(vcJson, new VerifyOptions
+        {
+            CredentialPaths = new[] { "Property:/energyEfficiency/*" },
+        });
+
+        if (!result.Valid)
+            throw new Exception($"Adapter issued invalid VC: {string.Join(", ", result.Errors)}");
+
+        return vcJson;
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## 7. Operational guidance
+
+A good adapter is mostly disciplined plumbing:
+
+- keep the source fetch, mapping, signing, and publishing steps separate
+- issue for the exact paths your TIR entry authorises, no more
+- treat source metadata as evidence, not as issuer identity
+- revoke old credentials when source data changes
+- publish status lists at stable HTTPS URLs
+- keep signing keys out of code, ideally in KMS
+
+The trust model matters here. The credential is signed by the adapter DID, not by the underlying source authority. The reason verifiers can trust it is that the TIR explicitly authorises that adapter DID for the relevant `entity:path` combinations.

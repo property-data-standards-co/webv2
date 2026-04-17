@@ -1,0 +1,513 @@
+---
+title: "Verify Trust"
+description: "How to verify an issuer's trust mark using OpenID Federation and @pdtf/core"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Every PDTF credential has a cryptographic signature, but a valid signature only proves the credential wasn't tampered with. To know whether the issuer is **authorised** for the data they're asserting, you need to verify their trust mark through OpenID Federation.
+
+The `@pdtf/core` library handles trust chain resolution and trust mark verification through `FederationRegistryResolver`.
+
+## 1. Create a resolver
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { FederationRegistryResolver } from '@pdtf/core';
+
+    const resolver = new FederationRegistryResolver({
+      trustAnchors: ['https://propdata.org.uk'],
+      cacheTtlMs: 60 * 60 * 1000, // 1 hour
+    });
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::federation::client::FederationRegistryResolver;
+
+    let resolver = FederationRegistryResolver::new(vec![
+        "https://propdata.org.uk".into(),
+    ])?;
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from pdtf_core import FederationRegistryResolver
+
+    resolver = FederationRegistryResolver(
+        trust_anchors=["https://propdata.org.uk"],
+        cache_ttl_ms=3_600_000,
+    )
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    using Pdtf.Core;
+
+    var resolver = new FederationRegistryResolver(new FederationOptions
+    {
+        TrustAnchors = new[] { "https://propdata.org.uk" },
+        CacheTtlMs = 3_600_000,
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+The resolver fetches entity statements from `.well-known/openid-federation` endpoints, builds trust chains, and caches the results. You only need one resolver instance per application.
+
+### Configuration options
+
+| Option | Default | Description |
+|---|---|---|
+| `trustAnchors` | required | Array of Trust Anchor URLs to recognise |
+| `cacheTtlMs` | `3600000` | How long to cache resolved trust chains |
+| `httpTimeoutMs` | `10000` | Timeout for fetching entity statements |
+| `maxChainDepth` | `5` | Maximum trust chain length (prevents loops) |
+
+## 2. Verify an issuer's trust mark
+
+The primary operation is checking whether an issuer is authorised for specific credential paths:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```typescript
+    const result = await resolver.verifyIssuer({
+      issuerUrl: 'https://adapters.propdata.org.uk/epc',
+      credentialPaths: ['Property:/energyEfficiency/*'],
+    });
+
+    if (!result.trusted) {
+      console.error('Uncovered paths:', result.uncoveredPaths);
+      throw new Error(`Issuer not authorised: ${result.reason}`);
+    }
+
+    console.log(result.trustLevel);      // 'trustedProxy'
+    console.log(result.trustMarkId);     // 'https://propdata.org.uk/trust-marks/property-data-provider'
+    console.log(result.chainLength);     // 2
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    let result = resolver.verify_issuer(
+        "https://adapters.propdata.org.uk/epc",
+        &["Property:/energyEfficiency/*"],
+    ).await?;
+
+    if !result.trusted {
+        eprintln!("Uncovered paths: {:?}", result.uncovered_paths);
+        return Err(format!("Issuer not authorised: {}", result.reason).into());
+    }
+
+    println!("Trust level: {}", result.trust_level);
+    println!("Trust mark: {}", result.trust_mark_id);
+    println!("Chain length: {}", result.chain_length);
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    result = resolver.verify_issuer(
+        issuer_url="https://adapters.propdata.org.uk/epc",
+        credential_paths=["Property:/energyEfficiency/*"],
+    )
+
+    if not result["trusted"]:
+        raise Exception(f"Issuer not authorised: {result['reason']}")
+
+    print(f"Trust level: {result['trustLevel']}")
+    print(f"Trust mark: {result['trustMarkId']}")
+    print(f"Chain length: {result['chainLength']}")
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    var result = await resolver.VerifyIssuer(
+        "https://adapters.propdata.org.uk/epc",
+        new[] { "Property:/energyEfficiency/*" });
+
+    if (!result.Trusted)
+        throw new Exception($"Issuer not authorised: {result.Reason}");
+
+    Console.WriteLine($"Trust level: {result.TrustLevel}");
+    Console.WriteLine($"Trust mark: {result.TrustMarkId}");
+    Console.WriteLine($"Chain length: {result.ChainLength}");
+    ```
+  </TabItem>
+</Tabs>
+
+### What `verifyIssuer` checks
+
+1. Fetches the issuer's entity statement from `{issuerUrl}/.well-known/openid-federation`
+2. Resolves the trust chain up to a recognised Trust Anchor
+3. Validates every signature in the chain
+4. Finds a trust mark matching the requested credential paths
+5. Verifies the trust mark was issued by the Trust Anchor
+6. Confirms the trust mark hasn't expired
+7. Checks that `authorised_paths` in the trust mark cover all requested paths
+
+## 3. Resolve a trust chain directly
+
+For debugging or audit purposes, you can resolve the full trust chain:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```typescript
+    const chain = await resolver.resolveTrustChain(
+      'https://adapters.propdata.org.uk/hmlr'
+    );
+
+    console.log(chain.anchor);        // 'https://propdata.org.uk'
+    console.log(chain.entities);      // [{url, statement, signedBy}, ...]
+    console.log(chain.trustMarks);    // trust marks held by the leaf entity
+
+    for (const entity of chain.entities) {
+      console.log(`${entity.url} — signed by ${entity.signedBy}`);
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    let chain = resolver.resolve_trust_chain(
+        "https://adapters.propdata.org.uk/hmlr"
+    ).await?;
+
+    println!("Anchor: {}", chain.anchor);
+    for entity in &chain.entities {
+        println!("{} — signed by {}", entity.url, entity.signed_by);
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    chain = resolver.resolve_trust_chain(
+        "https://adapters.propdata.org.uk/hmlr"
+    )
+
+    print(f"Anchor: {chain['anchor']}")
+    for entity in chain["entities"]:
+        print(f"{entity['url']} — signed by {entity['signedBy']}")
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    var chain = await resolver.ResolveTrustChain(
+        "https://adapters.propdata.org.uk/hmlr");
+
+    Console.WriteLine($"Anchor: {chain.Anchor}");
+    foreach (var entity in chain.Entities)
+        Console.WriteLine($"{entity.Url} — signed by {entity.SignedBy}");
+    ```
+  </TabItem>
+</Tabs>
+
+## 4. List an entity's trust marks
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```typescript
+    const marks = await resolver.getTrustMarks(
+      'https://adapters.propdata.org.uk/hmlr'
+    );
+
+    for (const mark of marks) {
+      console.log(mark.id);               // trust mark type URI
+      console.log(mark.trustLevel);       // 'rootIssuer' | 'trustedProxy'
+      console.log(mark.authorisedPaths);  // ['Title:/registerExtract/*', ...]
+      console.log(mark.expiresAt);        // Date or null
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    let marks = resolver.get_trust_marks(
+        "https://adapters.propdata.org.uk/hmlr"
+    ).await?;
+
+    for mark in &marks {
+        println!("ID: {}", mark.id);
+        println!("Level: {}", mark.trust_level);
+        println!("Paths: {:?}", mark.authorised_paths);
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    marks = resolver.get_trust_marks(
+        "https://adapters.propdata.org.uk/hmlr"
+    )
+
+    for mark in marks:
+        print(f"ID: {mark['id']}")
+        print(f"Level: {mark['trustLevel']}")
+        print(f"Paths: {mark['authorisedPaths']}")
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    var marks = await resolver.GetTrustMarks(
+        "https://adapters.propdata.org.uk/hmlr");
+
+    foreach (var mark in marks)
+    {
+        Console.WriteLine($"ID: {mark.Id}");
+        Console.WriteLine($"Level: {mark.TrustLevel}");
+        Console.WriteLine($"Paths: {string.Join(", ", mark.AuthorisedPaths)}");
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## 5. Integrate with full credential verification
+
+If you're using `VcValidator` (the normal path for verifier applications), federation verification is built in:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { DidResolver, FederationRegistryResolver, VcValidator } from '@pdtf/core';
+
+    const validator = new VcValidator();
+
+    const result = await validator.validate(credential, {
+      didResolver: new DidResolver(),
+      federationResolver: new FederationRegistryResolver({
+        trustAnchors: ['https://propdata.org.uk'],
+      }),
+      credentialPaths: ['Property:/energyEfficiency/*'],
+    });
+
+    if (!result.valid) {
+      console.error(result.errors);
+    }
+
+    // Trust information is included in the result
+    console.log(result.trust.trusted);
+    console.log(result.trust.trustLevel);
+    console.log(result.trust.trustMarkId);
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::validator::verify::{verify_vc, VerifyVcOptions};
+    use pdtf_core::did::resolver::DidResolver;
+    use pdtf_core::federation::client::FederationRegistryResolver;
+    use std::sync::Arc;
+
+    let resolver = DidResolver::new()?;
+    let fed = FederationRegistryResolver::new(vec![
+        "https://propdata.org.uk".into(),
+    ])?;
+
+    let result = verify_vc(VerifyVcOptions {
+        vc: &credential,
+        resolver: &resolver,
+        trust_resolver: Some(Arc::new(fed)),
+        claimed_paths: vec!["Property:/energyEfficiency/*".into()],
+        status_list_bitstring: None,
+    }).await;
+
+    if !result.valid {
+        eprintln!("Errors: {:?}", result.errors);
+    }
+    println!("Trusted: {}", result.trust_result.map_or(false, |t| t.trusted));
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from pdtf_core import verify_vc, DidResolver, FederationRegistryResolver
+    import json
+
+    result = verify_vc(
+        vc_json=json.dumps(credential),
+        resolver=DidResolver(),
+        federation_resolver=FederationRegistryResolver(
+            trust_anchors=["https://propdata.org.uk"]
+        ),
+        credential_paths=["Property:/energyEfficiency/*"],
+    )
+
+    if not result["valid"]:
+        print(f"Errors: {result['errors']}")
+
+    print(f"Trusted: {result['trust']['trusted']}")
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    using Pdtf.Core;
+
+    var validator = new VcValidator();
+    var result = await validator.Validate(credential, new ValidateOptions
+    {
+        DidResolver = new DidResolver(),
+        FederationResolver = new FederationRegistryResolver(new FederationOptions
+        {
+            TrustAnchors = new[] { "https://propdata.org.uk" },
+        }),
+        CredentialPaths = new[] { "Property:/energyEfficiency/*" },
+    });
+
+    if (!result.Valid)
+        Console.Error.WriteLine(string.Join(", ", result.Errors));
+
+    Console.WriteLine($"Trusted: {result.Trust.Trusted}");
+    ```
+  </TabItem>
+</Tabs>
+
+Use direct `verifyIssuer` calls when you want federation checks outside of full credential validation — for example, pre-checking an adapter before accepting credentials from it.
+
+## 6. Error handling
+
+Federation resolution can fail for several reasons:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```typescript
+    try {
+      const result = await resolver.verifyIssuer({
+        issuerUrl: 'https://adapters.propdata.org.uk/epc',
+        credentialPaths: ['Property:/energyEfficiency/*'],
+      });
+    } catch (err) {
+      if (err.code === 'CHAIN_RESOLUTION_FAILED') {
+        // Could not build a trust chain to a recognised anchor
+      } else if (err.code === 'ENTITY_STATEMENT_FETCH_FAILED') {
+        // Could not reach the entity's .well-known endpoint
+      } else if (err.code === 'SIGNATURE_INVALID') {
+        // A statement in the chain has an invalid signature
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::error::PdtfError;
+
+    match resolver.verify_issuer(
+        "https://adapters.propdata.org.uk/epc",
+        &["Property:/energyEfficiency/*"],
+    ).await {
+        Ok(result) => println!("Trusted: {}", result.trusted),
+        Err(PdtfError::ChainResolutionFailed(msg)) => {
+            eprintln!("Chain resolution failed: {msg}");
+        }
+        Err(PdtfError::FetchFailed(msg)) => {
+            eprintln!("Entity statement fetch failed: {msg}");
+        }
+        Err(e) => eprintln!("Unexpected error: {e}"),
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from pdtf_core import FederationError
+
+    try:
+        result = resolver.verify_issuer(
+            issuer_url="https://adapters.propdata.org.uk/epc",
+            credential_paths=["Property:/energyEfficiency/*"],
+        )
+    except FederationError as e:
+        if e.code == "CHAIN_RESOLUTION_FAILED":
+            print(f"Chain resolution failed: {e}")
+        elif e.code == "ENTITY_STATEMENT_FETCH_FAILED":
+            print(f"Fetch failed: {e}")
+        elif e.code == "SIGNATURE_INVALID":
+            print(f"Invalid signature in chain: {e}")
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    try
+    {
+        var result = await resolver.VerifyIssuer(
+            "https://adapters.propdata.org.uk/epc",
+            new[] { "Property:/energyEfficiency/*" });
+    }
+    catch (ChainResolutionException ex)
+    {
+        Console.Error.WriteLine($"Chain resolution failed: {ex.Message}");
+    }
+    catch (FetchFailedException ex)
+    {
+        Console.Error.WriteLine($"Entity statement fetch failed: {ex.Message}");
+    }
+    catch (SignatureInvalidException ex)
+    {
+        Console.Error.WriteLine($"Invalid signature in chain: {ex.Message}");
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### Resilience recommendations
+
+- Cache resolved trust chains (the resolver does this by default)
+- Set reasonable timeouts — entity statement endpoints may be slow
+- On transient failures, serve cached results for up to 24 hours
+- Log all trust verification failures for audit
+
+## 7. Migrating from TIR
+
+If you're using the older `TirClient` API:
+
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```typescript
+    // Old (TIR)
+    import { TirClient, verifyIssuer } from '@pdtf/core';
+    const tir = new TirClient({ registryUrl: '...' });
+    const result = await verifyIssuer({ issuerDid, credentialPaths, tirClient: tir });
+
+    // New (OpenID Federation)
+    import { FederationRegistryResolver } from '@pdtf/core';
+    const resolver = new FederationRegistryResolver({ trustAnchors: ['https://propdata.org.uk'] });
+    const result = await resolver.verifyIssuer({ issuerUrl, credentialPaths });
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    // Old (TIR) — deprecated
+    // let tir = TirClient::new("https://...")?;
+    // let result = tir.verify_issuer(issuer_did, &paths).await?;
+
+    // New (OpenID Federation)
+    let resolver = FederationRegistryResolver::new(vec![
+        "https://propdata.org.uk".into(),
+    ])?;
+    let result = resolver.verify_issuer(issuer_url, &paths).await?;
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # Old (TIR) — deprecated
+    # tir = TirClient(registry_url="https://...")
+    # result = verify_issuer(issuer_did, credential_paths, tir_client=tir)
+
+    # New (OpenID Federation)
+    resolver = FederationRegistryResolver(trust_anchors=["https://propdata.org.uk"])
+    result = resolver.verify_issuer(issuer_url=issuer_url, credential_paths=paths)
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    // Old (TIR) — deprecated
+    // var tir = new TirClient("https://...");
+    // var result = await tir.VerifyIssuer(issuerDid, paths);
+
+    // New (OpenID Federation)
+    var resolver = new FederationRegistryResolver(new FederationOptions
+    {
+        TrustAnchors = new[] { "https://propdata.org.uk" },
+    });
+    var result = await resolver.VerifyIssuer(issuerUrl, paths);
+    ```
+  </TabItem>
+</Tabs>
+
+Key differences:
+- Use `issuerUrl` (the entity's base URL) instead of `issuerDid`
+- No need to specify a registry URL — discovery is automatic via `.well-known/openid-federation`
+- Trust information comes from signed trust marks instead of a static JSON file
+- The `TirClient` API remains available for backward compatibility but is deprecated

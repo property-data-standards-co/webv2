@@ -3,6 +3,8 @@ title: "Host a DID Document"
 description: "Hosting a did:web DID document for your organisation or adapter."
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 A `did:web` DID is only useful if the document is actually hosted at the URL implied by the DID. In PDTF, organisations, transactions, and adapters use `did:web` because they need discoverable keys and service endpoints.
 
 The two important rules are:
@@ -14,15 +16,54 @@ The two important rules are:
 
 `@pdtf/core` exposes the same mapping the verifier uses via `didWebToUrl`.
 
-```ts
-import { didWebToUrl } from '@pdtf/core';
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    import { didWebToUrl } from '@pdtf/core';
 
-console.log(didWebToUrl('did:web:smithandjones.co.uk'));
-// https://smithandjones.co.uk/.well-known/did.json
+    console.log(didWebToUrl('did:web:smithandjones.co.uk'));
+    // https://smithandjones.co.uk/.well-known/did.json
 
-console.log(didWebToUrl('did:web:adapters.propdata.org.uk:epc'));
-// https://adapters.propdata.org.uk/epc/did.json
-```
+    console.log(didWebToUrl('did:web:adapters.propdata.org.uk:epc'));
+    // https://adapters.propdata.org.uk/epc/did.json
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::did::resolver::did_web_to_url;
+
+    let url = did_web_to_url("did:web:smithandjones.co.uk")?;
+    println!("{url}");
+    // https://smithandjones.co.uk/.well-known/did.json
+
+    let url = did_web_to_url("did:web:adapters.propdata.org.uk:epc")?;
+    println!("{url}");
+    // https://adapters.propdata.org.uk/epc/did.json
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from pdtf_core import did_web_to_url
+
+    print(did_web_to_url("did:web:smithandjones.co.uk"))
+    # https://smithandjones.co.uk/.well-known/did.json
+
+    print(did_web_to_url("did:web:adapters.propdata.org.uk:epc"))
+    # https://adapters.propdata.org.uk/epc/did.json
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    using Pdtf.Core;
+
+    Console.WriteLine(DidResolver.DidWebToUrl("did:web:smithandjones.co.uk"));
+    // https://smithandjones.co.uk/.well-known/did.json
+
+    Console.WriteLine(DidResolver.DidWebToUrl("did:web:adapters.propdata.org.uk:epc"));
+    // https://adapters.propdata.org.uk/epc/did.json
+    ```
+  </TabItem>
+</Tabs>
 
 For a root domain DID, host `/.well-known/did.json`. For a path-based DID, host `/path/.../did.json`.
 
@@ -94,15 +135,52 @@ These endpoints are not decorative. They let clients discover where to request c
 
 Once the file is live, test it with the same resolver that PDTF verifiers use.
 
-```ts
-import { DidResolver } from '@pdtf/core';
+<Tabs syncKey="language">
+  <TabItem label="TypeScript">
+    ```ts
+    import { DidResolver } from '@pdtf/core';
 
-const resolver = new DidResolver();
-const doc = await resolver.resolve('did:web:smithandjones.co.uk');
+    const resolver = new DidResolver();
+    const doc = await resolver.resolve('did:web:smithandjones.co.uk');
 
-console.log(doc.id);
-console.log(doc.assertionMethod);
-```
+    console.log(doc.id);
+    console.log(doc.assertionMethod);
+    ```
+  </TabItem>
+  <TabItem label="Rust">
+    ```rust
+    use pdtf_core::did::resolver::DidResolver;
+
+    let resolver = DidResolver::new()?;
+    let doc = resolver.resolve("did:web:smithandjones.co.uk").await?;
+
+    println!("ID: {}", doc.id);
+    println!("assertionMethod: {:?}", doc.assertion_method);
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from pdtf_core import DidResolver
+
+    resolver = DidResolver()
+    doc = resolver.resolve("did:web:smithandjones.co.uk")
+
+    print(f"ID: {doc['id']}")
+    print(f"assertionMethod: {doc['assertionMethod']}")
+    ```
+  </TabItem>
+  <TabItem label=".NET">
+    ```csharp
+    using Pdtf.Core;
+
+    var resolver = new DidResolver();
+    var doc = await resolver.Resolve("did:web:smithandjones.co.uk");
+
+    Console.WriteLine($"ID: {doc.Id}");
+    Console.WriteLine($"assertionMethod: {string.Join(", ", doc.AssertionMethod)}");
+    ```
+  </TabItem>
+</Tabs>
 
 If the hosted JSON does not match the DID exactly, `resolveDidWeb` will reject it.
 
