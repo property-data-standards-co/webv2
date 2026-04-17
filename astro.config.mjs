@@ -76,12 +76,13 @@ export default defineConfig({
 							items: [
 								{ label: 'Verify a Credential', slug: 'docs/guides/verify-credential' },
 								{ label: 'Issue a Credential', slug: 'docs/guides/issue-credential' },
+								{ label: 'Retrieve Credentials', slug: 'docs/guides/retrieve-credentials' },
 								{ label: 'Build an Adapter', slug: 'docs/guides/build-adapter' },
 								{ label: 'Verify Trust', slug: 'docs/guides/integrate-federation' },
 								{ label: 'Check Revocation', slug: 'docs/guides/check-revocation' },
 								{ label: 'Host a DID Document', slug: 'docs/guides/host-did-document' },
 								{ label: 'Organisation Onboarding', slug: 'docs/guides/org-onboarding' },
-						{ label: 'Key Management', slug: 'docs/guides/key-management' },
+								{ label: 'Key Management', slug: 'docs/guides/key-management' },
 							],
 						},
 						{
