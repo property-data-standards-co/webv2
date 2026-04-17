@@ -17,6 +17,12 @@ add_frontmatter() {
   local filename
   filename="$(basename "$src" .md)"
 
+  # If the source already has frontmatter (starts with ---), use it as-is
+  if head -1 "$src" | grep -q '^---$'; then
+    cp "$src" "$dest"
+    return
+  fi
+
   # Extract the first heading for the title
   local heading
   heading=$(grep -m1 '^# ' "$src" | sed 's/^# //')

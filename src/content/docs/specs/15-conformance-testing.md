@@ -1,9 +1,4 @@
 ---
-title: "15 Conformance Testing"
-description: "PDTF 2.0 specification document."
----
-
----
 title: "15 — Conformance Testing"
 description: "PDTF 2.0 conformance levels, test vectors, and interop protocols."
 ---
