@@ -141,9 +141,117 @@ Granular, path-based delegation is essential for a diverse ecosystem containing 
 
 ---
 
-## Section 4: Access & Exchange
+## Section 4: Schema Decomposition & Relationships
 
-### Q8. Intent-Based Access Control
+### Q8. Single Property, Multiple Titles
+
+**The Problem:**
+A single property can be held under multiple legal titles — a freehold house with a separate leasehold garage, or a property with both a freehold and a long lease. How should the schema model this?
+
+**The Options:**
+- **Option A (Multi-Property):** Allow a transaction to reference multiple `Property` entities, each with their own titles.
+- **Option B (Single Property, Multi-Title):** Constrain a transaction to exactly one `Property` entity, but allow multiple `Title` entities. This reflects the reality that forms like TA6 and BASPI assume a single physical property.
+
+**Our Recommendation (Option B):**
+Single property, multiple titles. This keeps form mapping straightforward and aligns with how conveyancing actually works. Multi-property transactions (e.g., land assembly) are a future extension, not a Phase 1 requirement.
+
+**Consultation Question:**
+> *Is the constraint of one Property per Transaction (with multiple Titles) appropriate for Phase 1, or are there common transaction types that require multiple Properties?*
+
+---
+
+### Q9. The Title Entity as Legal Interest
+
+**The Problem:**
+The v3 schema stored ownership details (freehold/leasehold, shared ownership terms, lease length) inside a nested `ownership` wrapper. With the entity graph, we need to decide what the `Title` entity fundamentally represents.
+
+**The Options:**
+- **Option A:** Title is a thin reference to HMLR data. Tenure details live elsewhere.
+- **Option B (Title IS the Legal Interest):** The Title entity represents the legal interest being conveyed. `legalInterestType` (Freehold, Leasehold, Commonhold), `freeholdDetails`, and `leaseholdDetails` sit at the top level of the Title entity alongside `registerExtract`.
+
+**Our Recommendation (Option B):**
+The Title entity is fundamentally the legal interest. The register extract is *evidence* of that interest, the title number is the *identifier* for it, and the tenure details *describe* it. They all belong together.
+
+**Consultation Question:**
+> *Does the framing of Title as the legal interest (with legalInterestType as a top-level discriminator) correctly model how conveyancers think about titles?*
+
+---
+
+### Q10. Relationship Credentials and the Two Intents
+
+**The Problem:**
+In v3, all parties are stored in a flat `participants[]` array with a `role` string. This loses the semantic richness of the relationships: a seller's conveyancer represents the seller's *intent to sell*, while a buyer's conveyancer supports the buyer's *intent to buy*. These are fundamentally different trust relationships.
+
+**The Options:**
+- **Option A (Flat Participation):** Retain a single `Participation` entity with role strings.
+- **Option B (Intent-Based Relationship Credentials):** Decompose participation into typed relationship credentials that orbit the relevant intent:
+  - `Representation` credentials for the Estate Agent and Seller's Conveyancer orbit the **Transaction** (intent to sell).
+  - `Representation` credentials for the Buyer's Conveyancer and Mortgage Broker orbit the **Offer** (intent to buy).
+  - `SellerCapacity` credentials assert a person's right to sell a specific title.
+  - `DelegatedConsent` credentials grant third parties (like lenders) traversal access to the graph.
+
+**Our Recommendation (Option B):**
+Typed relationship credentials provide precise, revocable, auditable authority chains. They also enable the graph itself to function as the access control model — no central ACL required.
+
+**Consultation Question:**
+> *Does the decomposition of flat participation into typed relationship credentials (Representation, SellerCapacity, DelegatedConsent, Offer) accurately model the authority chains in a property transaction? Are there relationship types we have missed?*
+
+---
+
+### Q11. Transaction Sale Context
+
+**The Problem:**
+The v3 schema stored sale-specific financial details (outstanding mortgage, Help to Buy equity loan, number of sellers, limited company sale) inside the `ownership` object alongside legal interest details. These are distinct concerns.
+
+**The Options:**
+- **Option A:** Keep financial sale details on the Property or Title entity.
+- **Option B (Transaction.saleContext):** Move sale-specific financial details to a `saleContext` object on the `Transaction` entity, since they describe *this particular sale*, not the property or the title.
+
+**Our Recommendation (Option B):**
+These fields fail the "Logbook Test" — they are irrelevant to the next buyer. They belong on the Transaction.
+
+**Consultation Question:**
+> *Is `Transaction.saleContext` the correct location for sale-specific financial details (outstanding mortgage, Help to Buy, etc.)?*
+
+---
+
+### Q12. Evolving Identifiers (Unregistered Titles and Missing UPRNs)
+
+**The Problem:**
+Some properties lack a UPRN (new builds). Some titles are unregistered. Over the course of a transaction, these identifiers may be allocated. How does the graph handle an entity whose permanent identifier didn't exist when the entity was first created?
+
+**The Options:**
+- **Option A:** Reissue all credentials with the new identifier and revoke the old ones.
+- **Option B (alsoKnownAs):** Use the W3C `alsoKnownAs` property on the Verifiable Credential. The new VC uses the permanent identifier as its `credentialSubject.id`, but lists the old synthetic identifier in `alsoKnownAs`. Graph traversal resolves both to the same entity.
+
+**Our Recommendation (Option B):**
+`alsoKnownAs` is a standard mechanism designed for exactly this purpose. It avoids mass credential revocation and reissuance.
+
+**Consultation Question:**
+> *Is `alsoKnownAs` a sufficient mechanism for handling identifier evolution, or are there edge cases (e.g., title splits, mergers) that require a different approach?*
+
+---
+
+### Q13. Search and Document Identifiers
+
+**The Problem:**
+Local authority searches, environmental reports, and other third-party documents need stable identifiers within the graph. Some providers issue their own reference numbers; others (especially PDF-based results) have no native identifier at all.
+
+**The Options:**
+- **Option A:** Mandate a central ID registry for all search products.
+- **Option B (Provider-Minted IDs):** Allow providers to mint their own globally unique identifiers (URNs or UUIDs). For documents extracted from PDFs without a native ID, the platform synthesises a deterministic identifier (e.g., a hash of search type + provider + date).
+
+**Our Recommendation (Option B):**
+This avoids a central bottleneck while ensuring every credential has a stable, unique subject identifier.
+
+**Consultation Question:**
+> *Is provider-minted identification (with synthetic IDs for unstructured documents) sufficient, or do we need a central search product registry?*
+
+---
+
+## Section 5: Access & Exchange
+
+### Q14. Intent-Based Access Control
 
 **The Problem:** 
 Property data is highly sensitive. How do we ensure that only authorised parties (e.g., a mortgage lender) can access the data, without relying on a central, proprietary Access Control List (ACL)?
@@ -160,7 +268,7 @@ Using relationship credentials (`Representation`, `DelegatedConsent`) as capabil
 
 ---
 
-### Q9. Standardised Exchange Protocols
+### Q15. Standardised Exchange Protocols
 
 **The Problem:** 
 Once a credential exists, how is it requested and delivered between different platforms?
