@@ -432,12 +432,19 @@ html[data-has-hero] body::before {
 /* ──────────── Hero (splash) page ──────────── */
 /* Centred layout with Fern-style soft radial tinting in the background.
    Override Starlight's default 7fr/4fr grid so content takes full width
-   and can centre properly (no empty image column on the right). */
+   and can centre properly (no empty image column on the right).
+   Also zero out the sidebar padding on splash pages so content is truly centred. */
+html[data-has-hero] .main-frame {
+	padding-inline-start: 0 !important;
+}
+
 .hero {
 	text-align: center;
 	position: relative;
 	padding-top: 4rem;
 	padding-bottom: 4rem;
+	max-width: 64rem;
+	margin-inline: auto;
 }
 
 @media (min-width: 50rem) {
@@ -614,11 +621,11 @@ html[data-has-hero] body::before {
 	font-size: 0.875rem;
 	letter-spacing: 0.01em;
 	text-align: center;
-	padding: 0.625rem 1rem;
+	padding: 0.75rem 1rem;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 0.125rem;
+	gap: 0.2rem;
 	/* Position at the absolute top of the viewport */
 	position: fixed;
 	top: 0;
@@ -627,19 +634,24 @@ html[data-has-hero] body::before {
 	z-index: 1000;
 }
 
-/* Push the Starlight header and sidebar down to make room for the fixed banner (~52px) */
+/* CSS variable for the banner height so all offsets stay in sync */
+:root {
+	--sl-banner-height: 3.75rem;
+}
+
+/* Push the Starlight header and sidebar down to make room for the fixed banner */
 @layer starlight.core {
 	.header {
-		top: 3.25rem !important;
+		top: var(--sl-banner-height) !important;
 	}
 	.sidebar-pane {
-		top: calc(var(--sl-nav-height) + 3.25rem) !important;
+		top: calc(var(--sl-nav-height) + var(--sl-banner-height)) !important;
 	}
 	.right-sidebar-panel {
-		top: calc(var(--sl-nav-height) + 3.25rem) !important;
+		top: calc(var(--sl-nav-height) + var(--sl-banner-height)) !important;
 	}
 	.main-frame {
-		padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + 3.25rem) !important;
+		padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + var(--sl-banner-height)) !important;
 	}
 }
 
