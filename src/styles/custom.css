@@ -126,6 +126,10 @@ html, body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
+body {
+	overflow-x: hidden;
+}
+
 .sl-markdown-content {
 	font-size: var(--sl-text-body);
 	line-height: var(--sl-line-height);
@@ -662,8 +666,8 @@ html[data-has-hero] .main-pane {
 	.sidebar-pane {
 		top: calc(var(--sl-nav-height) + var(--sl-banner-height)) !important;
 	}
-	.right-sidebar-panel {
-		top: calc(var(--sl-nav-height) + var(--sl-banner-height)) !important;
+	.right-sidebar {
+		padding-top: calc(var(--sl-nav-height) + var(--sl-banner-height)) !important;
 	}
 	.main-frame {
 		padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + var(--sl-banner-height)) !important;
