@@ -178,17 +178,28 @@ Wallet identity binding creates a single, reusable identity anchor across the tr
 ### Q10. Cross-Party Identity Reuse
 
 **The Problem:**
-Today, a buyer undergoes separate AML/KYC checks with their conveyancer, their mortgage lender, and sometimes their estate agent. Each check costs money, takes time, and produces inconsistent results. If a consumer holds a government-verified identity in their GOV.UK Wallet, should a single verified presentation be accepted by all parties?
+Today, a buyer undergoes separate AML/KYC checks with their conveyancer, their mortgage lender, and sometimes their estate agent. Each check costs money, takes time, and produces inconsistent results. If a consumer holds a verified identity — whether via a GOV.UK Wallet or platform-managed identity verification — should a single verified presentation be accepted by all parties?
+
+Beyond the policy question of *whether* to accept cross-party identity, there is an architectural question: *how* does a person construct a trusted relationship assertion ("this is my identity that I want to share into this transaction"), and how does the receiving party verify it?
 
 **The Options:**
-- **Option A:** Each party continues to run independent AML/KYC checks regardless of wallet identity.
-- **Option B (Cross-Party Acceptance):** A verified GOV.UK Wallet identity presentation (at the appropriate assurance level) is accepted as sufficient AML/KYC evidence by all parties in the transaction. Each party can independently verify the credential's validity and revocation status without trusting the platform that first received it.
 
-**Our Recommendation (Option B):**
-Cross-party acceptance of a government-verified identity eliminates redundant checks, reduces transaction costs, and speeds up the process — while maintaining each party's ability to independently verify the credential.
+**Part 1 — Should cross-party acceptance happen?**
+- **Option A:** Each party continues to run independent AML/KYC checks regardless of prior verification.
+- **Option B (Cross-Party Acceptance):** A verified identity credential (at the appropriate assurance level) is accepted as sufficient AML/KYC evidence by all parties in the transaction. Each party can independently verify the credential's validity and revocation status without trusting the platform that first received it.
 
-**Consultation Question:**
-> *Should a verified GOV.UK Wallet identity presentation be accepted as sufficient AML/KYC evidence across all parties in a transaction?*
+**Part 2 — How is the identity assertion trusted?**
+- **Option A (Bearer VC Presentation):** The person holds an identity Verifiable Credential and presents it directly to the new party. The receiving firm verifies the signature and checks the issuer in the Federated Registry. Simple, but without holder-binding the credential is a bearer token — anyone with a copy can present it. Requires additional anti-replay measures (audience restriction, nonce binding).
+- **Option B (Firm-to-Firm Transfer with Consent):** The person authorises their current firm to share the identity credential with the new firm. The platform brokers the handoff. No key management for the person, but they have no independent control — reuse is tied to the originating firm's willingness to share.
+- **Option C (DID-Bound Credential with Proof of Control):** The person's identity VC is bound to their `did:key` via `credentialSubject.id`. When entering a new transaction, the platform proves DID control on their behalf (signing a challenge with the person's platform-managed key) and presents the credential. The receiving firm verifies: credential signature valid, DID binding matches, challenge signature proves control, issuer in Federated Registry, credential not revoked. Cryptographically clean — the assertion "this is my identity" is provable, not just claimed. Forward-compatible with self-sovereign wallets.
+
+**Our Recommendation (Part 1: Option B, Part 2: Option C):**
+Cross-party acceptance eliminates redundant checks, reduces transaction costs, and speeds up the process. For the trust mechanism, DID-bound credentials with platform-managed proof of control provide the strongest guarantees: the identity assertion is cryptographically provable (not just claimed), the person doesn't need to manage keys (the platform does it on their behalf via KMS), and the format is identical whether the key is platform-managed today or wallet-held in the future. See [Sub-spec 03 §10.5](/specs/03-did-methods/#105-cross-party-identity-reuse) for the full verification flow.
+
+**Consultation Questions:**
+> *Should a verified identity credential be accepted as sufficient AML/KYC evidence across all parties in a transaction?*
+
+> *Is DID-bound proof of control (Option C) the right default mechanism for cross-party identity presentation, or does the industry prefer a simpler bearer model or firm-to-firm delegation?*
 
 ---
 
