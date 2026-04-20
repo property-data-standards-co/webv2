@@ -1041,6 +1041,63 @@ Should Organisations be allowed to have multiple active keys for different purpo
 
 If `did:web` is superseded by a more secure method (e.g., `did:webvh` with verifiable history, or `did:tdw`), what is the migration path? OpenID Federation is DID-method-agnostic and can support multiple methods simultaneously, but credential re-issuance may be needed.
 
+### 10.5 Cross-Party Identity Reuse
+
+**Status:** Recommended approach decided; open for industry consultation.
+
+**Problem:** A person who has been identity-verified in Transaction A (e.g., as a buyer) subsequently enters Transaction B (e.g., as a seller, or as a buyer of a different property). How do they carry their verified identity across without re-verification, and how does the receiving party in Transaction B trust the assertion "this is my identity"?
+
+**Recommended approach: DID-bound credential with platform-managed proof of control (Option C).**
+
+The person's identity verification credential is bound to their `did:key` via `credentialSubject.id`. When they enter a new transaction, the platform proves DID control on their behalf (signing a challenge with the platform-managed key) and presents the identity credential. The receiving firm verifies:
+
+1. **Credential signature** — valid, signed by an issuer in the Federated Registry
+2. **DID binding** — `credentialSubject.id` matches the DID presenting the credential
+3. **Proof of control** — the presenter signed the challenge with the private key corresponding to the DID (proving they are the credential subject, not a replayer)
+4. **Revocation status** — Bitstring Status List confirms the credential has not been revoked
+5. **Issuer authority** — the issuing entity is listed in the Federated Registry as an authorised identity verifier
+
+**Verification flow:**
+
+```
+Transaction A (completed):
+  Person verified by Firm X → Identity VC issued
+    credentialSubject.id: did:key:z6Mk{person}
+    issuer: did:key:z6Mk{firmX}  (or platform DID)
+    type: [VerifiableCredential, IdentityVerification]
+    evidence: [{type: "DocumentVerification", ...}]
+
+Transaction B (new):
+  1. Person enters transaction, platform asserts their DID
+  2. Receiving Firm Y sends challenge nonce
+  3. Platform signs challenge with person's key (platform-managed)
+     → proves person controls did:key:z6Mk{person}
+  4. Platform presents Identity VC from Transaction A
+  5. Firm Y verifies:
+     a. VC signature valid
+     b. credentialSubject.id == DID that signed the challenge
+     c. Issuer DID in Federated Registry as identity verifier
+     d. Credential not revoked
+  6. Firm Y accepts — person is identity-verified without re-verification
+```
+
+**Why this approach:**
+
+- **Cryptographic binding** — the relationship assertion ("this is my identity") is provable via DID control, not merely claimed. A bearer token without holder-binding could be replayed by anyone who obtains the credential.
+- **Platform-managed keys** — the account holder does not need to manage cryptographic keys directly. The platform holds the key in KMS and signs on behalf of the person. This preserves the zero-friction onboarding model (Sub-spec 06 §10.1) while providing the cryptographic guarantees of self-sovereign identity.
+- **Forward-compatible** — when digital identity wallets mature (Sub-spec 06 §10), the person can migrate to a self-held key. The credential format and verification flow are identical; only the key custody changes.
+- **Consent-gated** — the person must initiate or approve the presentation. The platform cannot unilaterally share identity credentials into a new transaction.
+
+**Alternative approaches (presented for industry consultation):**
+
+| Option | Mechanism | Trust model | Key management | Limitations |
+|--------|-----------|-------------|----------------|-------------|
+| **A. Bearer VC presentation** | Person presents identity VC directly; no DID-binding proof | Credential signature + Federated Registry lookup | None (bearer token) | Without holder-binding, anyone with a copy of the VC can present it. Requires additional anti-replay measures (audience restriction, nonce binding). |
+| **B. Firm-to-firm transfer with consent** | Person authorises Firm X to share credential with Firm Y; platform brokers the handoff | Firm-to-firm trust, both in Federated Registry | None (firm-held) | Person has no independent control over their identity. Not truly portable — tied to the originating firm's willingness to share. |
+| **C. DID-bound + platform-managed proof of control** _(recommended)_ | Person's DID is bound to credential; platform proves DID control on their behalf | Cryptographic proof of control + Federated Registry | Platform-managed (KMS) | Requires platform to manage keys on behalf of users. Person trusts platform not to sign without consent. Mitigated by audit logging and future wallet migration. |
+
+**Consultation question:** See [Industry Consultation Q10](/consultation/).
+
 ---
 
 ## 11. Implementation Notes
